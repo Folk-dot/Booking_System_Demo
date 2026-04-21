@@ -23,13 +23,7 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
     setLoadingSlots(true);
     setSelectedSlot(null);
     const dateStr = toBkkDateStr(selectedDate);
-    dashApi
-      .get('/slots', { params: { trainer_id: booking.trainee.id, date: dateStr } })
-      // trainer fetches own slots via trainer route
-      .catch(() => {})
-      .finally(() => setLoadingSlots(false));
-
-    // Actually fetch trainer's own slots for that date
+    // Fetch trainer's own slots for that date
     dashApi
       .get('/slots/trainer', {
         params: {

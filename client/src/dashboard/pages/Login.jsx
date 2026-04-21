@@ -8,7 +8,7 @@ export default function Login() {
   const [form, setForm] = useState({
     email: '',
     password: '',
-    tenantSlug: import.meta.env.VITE_TENANT_SLUG || '',
+    tenantSlug: import.meta.env.VITE_TENANT_SLUG
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,22 +76,6 @@ export default function Login() {
                 className="input"
               />
             </div>
-
-            {/* Tenant slug — hidden if pre-filled from env */}
-            {!import.meta.env.VITE_TENANT_SLUG && (
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Workspace</label>
-                <input
-                  type="text"
-                  name="tenantSlug"
-                  value={form.tenantSlug}
-                  onChange={handleChange}
-                  required
-                  placeholder="your-gym-slug"
-                  className="input"
-                />
-              </div>
-            )}
 
             <ErrorMessage message={error} />
 
