@@ -48,7 +48,7 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="hidden w-60 flex-col border-r border-gray-200 bg-white md:flex">
         <div className="border-b border-gray-100 px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Trainer Portal</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">The Hangar Martial Arts Gym</p>
           <p className="mt-1 truncate font-semibold text-gray-900">{user.name || 'Trainer'}</p>
         </div>
 
