@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const liffApi = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || '/v1',
+  baseURL: `${import.meta.env.VITE_API_BASE}/api`,
   timeout: 10000,
 });
 

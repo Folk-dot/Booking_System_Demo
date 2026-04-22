@@ -36,14 +36,14 @@ const authLimiter = rateLimit({
   message: { error: 'Too many login attempts, please try again later.' },
 });
 
-app.use('/v1', limiter);
-app.use('/v1/auth', authLimiter);
+app.use('/api', limiter);
+app.use('/api/auth', authLimiter);
 
 app.use(express.json({ limit: '1mb' }));
 
 app.use(timezoneMiddleware);
 
-app.use('/v1', routes);
+app.use('/api', routes);
 
 // ── Health check ──────────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok', tz: process.env.TZ }));

@@ -9,6 +9,7 @@ const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG;
 
 async function initLiff() {
+  console.log('initiate LIFF')
   await liff.init({ 
     liffId: LIFF_ID,
     withLoginOnExternalBrowser: true 
@@ -30,7 +31,8 @@ async function initLiff() {
 
     const { token } = res.data;
 
-    sessionStorage.setItem('trainee_token', token);
+    localStorage.setItem('trainee_token', token);
+    console.log(token);
 
   } catch (error) {
     document.getElementById('root').innerHTML =
