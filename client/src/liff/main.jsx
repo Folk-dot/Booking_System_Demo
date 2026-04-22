@@ -15,13 +15,15 @@ async function initLiff() {
     withLoginOnExternalBrowser: true 
   });
 
+  console.log('is login?')
   if (!liff.isLoggedIn()) {
     liff.login();
     return;
   }
 
+  console.log('getting token...')
   const accessToken = liff.getAccessToken();
-
+  console.log('access token: ',accessToken)
   // Exchange LIFF token for our app JWT
   try {
     const res = await liffApi.post('/auth/liff', {
