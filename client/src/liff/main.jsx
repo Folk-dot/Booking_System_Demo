@@ -31,7 +31,6 @@ async function initLiff() {
     const { token } = res.data;
 
     localStorage.setItem('trainee_token', token);
-    console.log(token);
 
   } catch (error) {
     document.getElementById('root').innerHTML =
