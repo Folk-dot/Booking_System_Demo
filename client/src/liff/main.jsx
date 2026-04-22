@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import liff from '@line/liff';
 import App from './App.jsx';
 import '../index.css';
+import liffApi from '../api/liffApi.js';
 
 const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG;
@@ -21,20 +22,20 @@ async function initLiff() {
   const accessToken = liff.getAccessToken();
 
   // Exchange LIFF token for our app JWT
-  const res = await fetch('/v1/auth/liff', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ liffAccessToken: accessToken, tenantSlug: TENANT_SLUG }),
-  });
+  try {
+    const res = await liffApi.post('/auth/liff', {
+      liffAccessToken: accessToken,
+      tenantSlug: TENANT_SLUG
+    });
 
-  if (!res.ok) {
+    const { token } = res.data;
+
+    sessionStorage.setItem('trainee_token', token);
+
+  } catch (error) {
     document.getElementById('root').innerHTML =
       '<div style="padding:2rem;text-align:center;color:#ef4444">เกิดข้อผิดพลาด กรุณาเปิดใหม่</div>';
-    return;
   }
-
-  const { token } = await res.json();
-  sessionStorage.setItem('trainee_token', token);
 
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
