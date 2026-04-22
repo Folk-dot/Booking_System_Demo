@@ -8,7 +8,10 @@ const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG;
 
 async function initLiff() {
-  await liff.init({ liffId: LIFF_ID });
+  await liff.init({ 
+    liffId: LIFF_ID,
+    withLoginOnExternalBrowser: true 
+  });
 
   if (!liff.isLoggedIn()) {
     liff.login();
