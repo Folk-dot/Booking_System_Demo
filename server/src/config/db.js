@@ -12,4 +12,15 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
+async function testDb() {
+  try {
+    const res = await pool.query('SELECT NOW()');
+    console.log('DB connected:', res.rows[0]);
+  } catch (err) {
+    console.error('DB failed:', err);
+  }
+}
+
+testDb();
+
 export default pool;

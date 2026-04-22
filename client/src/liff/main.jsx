@@ -9,21 +9,18 @@ const LIFF_ID = import.meta.env.VITE_LIFF_ID;
 const TENANT_SLUG = import.meta.env.VITE_TENANT_SLUG;
 
 async function initLiff() {
-  console.log('initiate LIFF')
   await liff.init({ 
     liffId: LIFF_ID,
     withLoginOnExternalBrowser: true 
   });
 
-  console.log('is login?')
   if (!liff.isLoggedIn()) {
     liff.login();
     return;
   }
 
-  console.log('getting token...')
   const accessToken = liff.getAccessToken();
-  console.log('access token: ',accessToken)
+
   // Exchange LIFF token for our app JWT
   try {
     const res = await liffApi.post('/auth/liff', {
