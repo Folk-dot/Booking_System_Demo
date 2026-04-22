@@ -16,7 +16,7 @@ liffApi.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       sessionStorage.removeItem('trainee_token');
-      window.location.reload();
+      // window.location.reload();
     }
     return Promise.reject(err);
   }

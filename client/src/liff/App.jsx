@@ -9,11 +9,11 @@ export default function App() {
     <BrowserRouter>
       <div className="mx-auto min-h-screen max-w-md bg-white">
         <Routes>
-          <Route path="/" element={<TrainerSelect />} />
+          <Route path="/liff" element={<TrainerSelect />} />
           <Route path="/slots/:trainerId" element={<SlotPicker />} />
           <Route path="/confirm" element={<Confirm />} />
           <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/liff" replace />} />  
         </Routes>
       </div>
     </BrowserRouter>
