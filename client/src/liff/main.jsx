@@ -30,7 +30,7 @@ async function initLiff() {
 
     const { token } = res.data;
 
-    localStorage.setItem('trainee_token', token);
+    sessionStorage.setItem('trainee_token', token);
 
   } catch (error) {
     document.getElementById('root').innerHTML =
