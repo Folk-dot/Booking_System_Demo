@@ -28,6 +28,7 @@ export default function App() {
 
         setReady(true);
       } catch (err) {
+        console.log(import.meta.env.VITE_LIFF_ID);
         console.error('[liff] init error:', err);
         setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
       }
@@ -37,12 +38,10 @@ export default function App() {
   }, []);
 
   if (error) {
-    console.log(import.meta.env.VITE_LIFF_ID);
     return (
       <div className="flex min-h-screen items-center justify-center p-6 text-center">
         <div>
           <p className="text-red-500 font-medium">{error}</p>
-          <p>{import.meta.env.VITE_LIFF_ID}</p>
           <button onClick={() => window.location.reload()} className="btn-primary mt-4">
             ลองใหม่
           </button>
