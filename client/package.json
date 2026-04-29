@@ -12,7 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@line/liff": "^2.23.1",
+    "@line/liff": "2.23.1",
     "@supabase/supabase-js": "^2.45.0",
     "date-fns": "^3.6.0",
     "date-fns-tz": "^3.1.3",
