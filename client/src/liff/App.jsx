@@ -15,7 +15,7 @@ export default function App() {
   useEffect(() => {
     async function initLiff() {
       try {
-        await liff.init({ liffId: '2009823555-sEdLimO1', withLoginOnExternalBrowser: true });
+        await liff.init({ liffId: import.meta.env.VITE_LIFF_ID, withLoginOnExternalBrowser: true });
 
         if (!liff.isLoggedIn()) {
           liff.login(); // redirects to LINE login
@@ -28,10 +28,8 @@ export default function App() {
 
         setReady(true);
       } catch (err) {
-        console.log(import.meta.env.VITE_LIFF_ID);
-        console.log('error:', import.meta.env.VITE_LIFF_ID);
-        // console.error('[liff] init error:', err);
-        // setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
+        console.error('[liff] init error:', err);
+        setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
       }
     }
 
