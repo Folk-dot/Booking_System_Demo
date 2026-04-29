@@ -166,6 +166,7 @@ export async function getMyBookings({ from, to } = {}) {
     .select(`
       id, status, notes, confirmed_at, starts_at, ends_at,
       trainer_id, event_type_id, tenant_id,
+      trainers ( name ),
       event_types ( name, duration_minutes, color ),
       trainees ( id, display_name, picture_url, line_uid )
     `)

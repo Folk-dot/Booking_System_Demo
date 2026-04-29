@@ -61,8 +61,8 @@ export default async function handler(req, res) {
       },
     });
 
-    // Ignore "user already exists" — that's fine
-    if (createError && createError.message !== 'A user with this email address has already been registered') {
+    // Ignore "user already exists" (status 422) — that's fine
+    if (createError && createError.status !== 422) {
       console.error('[liff-auth] createUser error:', createError);
       return res.status(500).json({ error: 'Failed to create account' });
     }

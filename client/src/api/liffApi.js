@@ -38,7 +38,7 @@ export async function liffSignIn(liffAccessToken) {
 
   const { email, token } = await res.json();
 
-  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'magiclink' });
+  const { data, error } = await supabase.auth.verifyOtp({ token_hash: token, type: 'magiclink' });
   if (error) throw error;
 
   // Clear cache so next call fetches fresh profile for this session

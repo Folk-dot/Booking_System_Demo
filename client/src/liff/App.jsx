@@ -24,6 +24,7 @@ export default function App() {
 
         // Exchange LINE token for a Supabase session
         const accessToken = liff.getAccessToken();
+        if (!accessToken) throw new Error('No LINE access token');
         await liffSignIn(accessToken);
 
         setReady(true);
