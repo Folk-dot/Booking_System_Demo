@@ -29,6 +29,7 @@ export default function App() {
         setReady(true);
       } catch (err) {
         console.log(import.meta.env.VITE_LIFF_ID);
+        console.log('error:', import.meta.env.VITE_LIFF_ID);
         console.error('[liff] init error:', err);
         setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
       }
