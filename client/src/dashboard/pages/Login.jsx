@@ -1,33 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import dashApi from '@/api/dashApi.js';
+import { login } from '@/api/dashApi.js';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
-    email: '',
-    password: '',
-    tenantSlug: import.meta.env.VITE_TENANT_SLUG
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  function handleChange(e) {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
-  }
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState('');
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const { data } = await dashApi.post('/auth/login', form);
-      localStorage.setItem('trainer_token', data.token);
-      localStorage.setItem('trainer_user', JSON.stringify(data.trainer));
+      await login(email, password);
       navigate('/bookings');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      setError(err.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -53,9 +44,8 @@ export default function Login() {
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Email</label>
               <input
                 type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
@@ -67,9 +57,8 @@ export default function Login() {
               <label className="mb-1.5 block text-sm font-medium text-gray-700">Password</label>
               <input
                 type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
                 placeholder="••••••••"

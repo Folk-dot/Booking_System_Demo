@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import liffApi from '@/api/liffApi.js';
+import { listTrainers } from '@/api/liffApi.js';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
 export default function TrainerSelect() {
   const [trainers, setTrainers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    liffApi
-      .get('/trainers')
-      .then((r) => setTrainers(r.data))
+    listTrainers()
+      .then(setTrainers)
       .catch(() => setError('โหลดข้อมูลเทรนเนอร์ไม่สำเร็จ'))
       .finally(() => setLoading(false));
   }, []);
@@ -22,7 +21,6 @@ export default function TrainerSelect() {
 
   return (
     <div className="p-4">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-xl font-bold text-gray-900">เลือกเทรนเนอร์</h1>
         <p className="mt-1 text-sm text-gray-500">เลือกเทรนเนอร์เพื่อดูเวลาว่าง</p>
@@ -39,11 +37,8 @@ export default function TrainerSelect() {
                        shadow-sm ring-1 ring-gray-100 transition hover:ring-brand-400 active:scale-[0.98]"
           >
             {trainer.avatar_url ? (
-              <img
-                src={trainer.avatar_url}
-                alt={trainer.name}
-                className="h-14 w-14 rounded-full object-cover"
-              />
+              <img src={trainer.avatar_url} alt={trainer.name}
+                className="h-14 w-14 rounded-full object-cover" />
             ) : (
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-xl font-bold text-brand-700">
                 {trainer.name.charAt(0)}
@@ -65,7 +60,6 @@ export default function TrainerSelect() {
         ))}
       </div>
 
-      {/* My bookings link */}
       <button
         onClick={() => navigate('/my-bookings')}
         className="mt-6 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"

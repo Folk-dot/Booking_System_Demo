@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import liffApi from '@/api/liffApi.js';
+import { createBooking } from '@/api/liffApi.js';
 import { formatDateRange } from '@/shared/utils/dateUtils.js';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
 export default function Confirm() {
   const { state } = useLocation();
-  const navigate = useNavigate();
-  const { slot, trainer } = state || {};
+  const navigate  = useNavigate();
+  const { slot, trainer, eventType } = state || {};
 
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes]   = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]   = useState('');
   const [success, setSuccess] = useState(false);
+  const [bookingId, setBookingId] = useState(null);
 
-  if (!slot || !trainer) {
+  if (!slot || !trainer || !eventType) {
     navigate('/');
     return null;
   }
@@ -23,11 +24,22 @@ export default function Confirm() {
     setLoading(true);
     setError('');
     try {
-      await liffApi.post('/bookings', { slotId: slot.id, notes: notes || undefined });
+      const booking = await createBooking({
+        trainerId:   trainer.id,
+        eventTypeId: eventType.id,
+        startsAt:    slot.slot_start,
+        endsAt:      slot.slot_end,
+        notes:       notes || undefined,
+      });
+      setBookingId(booking.id);
       setSuccess(true);
     } catch (err) {
-      const msg = err.response?.data?.error;
-      setError(msg === 'Slot already booked' ? 'เวลานี้ถูกจองแล้ว กรุณาเลือกเวลาใหม่' : 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+      const msg = err.message || '';
+      if (msg.includes('duplicate') || msg.includes('unique')) {
+        setError('เวลานี้ถูกจองแล้ว กรุณาเลือกเวลาใหม่');
+      } else {
+        setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+      }
     } finally {
       setLoading(false);
     }
@@ -38,12 +50,11 @@ export default function Confirm() {
       <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
         <div className="mb-4 text-6xl">✅</div>
         <h2 className="mb-2 text-xl font-bold text-gray-900">จองสำเร็จแล้ว!</h2>
-        <p className="mb-1 text-gray-600">{trainer.name}</p>
-        <p className="mb-6 text-sm text-gray-500">{formatDateRange(slot.startsAt, slot.endsAt)}</p>
+        <p className="mb-1 font-medium text-gray-700">{trainer.name}</p>
+        <p className="mb-1 text-sm text-brand-600">{eventType.name}</p>
+        <p className="mb-6 text-sm text-gray-500">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
         <p className="mb-8 text-sm text-gray-400">คุณจะได้รับข้อความยืนยันทาง LINE</p>
-        <button onClick={() => navigate('/')} className="btn-primary w-full">
-          กลับหน้าหลัก
-        </button>
+        <button onClick={() => navigate('/liff')} className="btn-primary w-full">กลับหน้าหลัก</button>
         <button onClick={() => navigate('/my-bookings')} className="btn-secondary mt-3 w-full">
           ดูการจองของฉัน
         </button>
@@ -62,9 +73,8 @@ export default function Confirm() {
 
       <h1 className="mb-6 text-xl font-bold text-gray-900">ยืนยันการจอง</h1>
 
-      {/* Summary card */}
-      <div className="card mb-6">
-        <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
+      <div className="card mb-6 space-y-4">
+        <div className="flex items-center gap-3">
           {trainer.avatar_url ? (
             <img src={trainer.avatar_url} alt={trainer.name} className="h-12 w-12 rounded-full object-cover" />
           ) : (
@@ -77,17 +87,25 @@ export default function Confirm() {
             {trainer.specialty && <p className="text-xs text-brand-600">{trainer.specialty}</p>}
           </div>
         </div>
-        <div className="pt-4">
-          <p className="text-sm text-gray-500">วัน/เวลา</p>
-          <p className="mt-1 font-semibold text-gray-900">{formatDateRange(slot.startsAt, slot.endsAt)}</p>
+
+        <div className="border-t border-gray-100 pt-4 space-y-3">
+          <div>
+            <p className="text-xs text-gray-500">ประเภทการจอง</p>
+            <p className="mt-0.5 font-medium text-gray-900">
+              <span className="mr-2 inline-block h-2 w-2 rounded-full"
+                style={{ backgroundColor: eventType.color || '#3B82F6' }} />
+              {eventType.name} ({eventType.duration_minutes} นาที)
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">วัน/เวลา</p>
+            <p className="mt-0.5 font-medium text-gray-900">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
+          </div>
         </div>
       </div>
 
-      {/* Notes */}
       <div className="mb-6">
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">
-          หมายเหตุ (ไม่บังคับ)
-        </label>
+        <label className="mb-1.5 block text-sm font-medium text-gray-700">หมายเหตุ (ไม่บังคับ)</label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
@@ -103,9 +121,7 @@ export default function Confirm() {
         <button onClick={handleConfirm} disabled={loading} className="btn-primary w-full">
           {loading ? 'กำลังจอง...' : 'ยืนยันการจอง'}
         </button>
-        <button onClick={() => navigate(-1)} className="btn-secondary w-full">
-          ยกเลิก
-        </button>
+        <button onClick={() => navigate(-1)} className="btn-secondary w-full">ยกเลิก</button>
       </div>
     </div>
   );

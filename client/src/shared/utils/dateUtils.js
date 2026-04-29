@@ -28,7 +28,3 @@ export function toBkkDateStr(date) {
   return format(d, 'yyyy-MM-dd');
 }
 
-// Returns an ISO string representing Bangkok midnight of a YYYY-MM-DD date string
-export function bkkDateToUtcIso(dateStr) {
-  return new Date(`${dateStr}T00:00:00+07:00`).toISOString();
-}

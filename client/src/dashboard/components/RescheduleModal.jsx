@@ -1,57 +1,49 @@
 import { useEffect, useState } from 'react';
-import dashApi from '@/api/dashApi.js';
-import { formatDateRange, formatTime, toBkkDateStr } from '@/shared/utils/dateUtils.js';
 import { format, addDays, startOfDay } from 'date-fns';
+import { getAvailableSlots, rescheduleBooking } from '@/api/dashApi.js';
+import { formatDateRange, formatTime } from '@/shared/utils/dateUtils.js';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 
 function getDates(count = 14) {
-  const today = startOfDay(new Date());
-  return Array.from({ length: count }, (_, i) => addDays(today, i));
+  return Array.from({ length: count }, (_, i) => addDays(startOfDay(new Date()), i));
 }
 
 export default function RescheduleModal({ booking, onClose, onSuccess }) {
   const dates = getDates();
   const [selectedDate, setSelectedDate] = useState(dates[0]);
-  const [slots, setSlots] = useState([]);
+  const [slots, setSlots]               = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [submitting, setSubmitting]     = useState(false);
+  const [error, setError]               = useState('');
 
   useEffect(() => {
     setLoadingSlots(true);
     setSelectedSlot(null);
-    const dateStr = toBkkDateStr(selectedDate);
-    // Fetch trainer's own slots for that date
-    dashApi
-      .get('/slots/trainer', {
-        params: {
-          from: new Date(`${dateStr}T00:00:00+07:00`).toISOString(),
-          to: new Date(`${dateStr}T23:59:59+07:00`).toISOString(),
-        },
-      })
-      .then((r) => {
-        // Only unbooked, unblocked slots
-        setSlots(r.data.filter((s) => !s.booking && !s.isBlocked));
-      })
-      .catch(() => setError('Failed to load slots'))
+    setSlots([]);
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    getAvailableSlots(booking.trainer_id, booking.event_type_id, dateStr)
+      .then(setSlots)
+      .catch(() => setError('Failed to load available slots'))
       .finally(() => setLoadingSlots(false));
-  }, [selectedDate, booking.trainee.id]);
+  }, [selectedDate, booking.trainer_id, booking.event_type_id]);
 
   async function handleReschedule() {
     if (!selectedSlot) return;
     setSubmitting(true);
     setError('');
     try {
-      await dashApi.patch(`/bookings/${booking.id}/reschedule`, { newSlotId: selectedSlot.id });
+      await rescheduleBooking(booking.id, selectedSlot.slot_start, selectedSlot.slot_end);
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reschedule');
+      setError(err.message || 'Failed to reschedule');
     } finally {
       setSubmitting(false);
     }
   }
+
+  const trainee = booking.trainees;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center">
@@ -66,18 +58,25 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
         </div>
 
         <div className="mb-4 rounded-xl bg-gray-50 px-4 py-3 text-sm">
-          <p className="font-medium text-gray-900">{booking.trainee.name}</p>
-          <p className="text-gray-500">{formatDateRange(booking.startsAt, booking.endsAt)}</p>
+          <p className="font-medium text-gray-900">{trainee?.display_name || 'LINE User'}</p>
+          <p className="text-gray-500">{formatDateRange(booking.starts_at, booking.ends_at)}</p>
+          {booking.event_types && (
+            <span className="mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white"
+              style={{ backgroundColor: booking.event_types.color || '#3B82F6' }}>
+              {booking.event_types.name}
+            </span>
+          )}
         </div>
 
         {/* Date strip */}
         <div className="-mx-2 overflow-x-auto">
           <div className="flex gap-2 px-2 pb-3" style={{ width: 'max-content' }}>
             {dates.map((date) => {
-              const isSelected = toBkkDateStr(date) === toBkkDateStr(selectedDate);
+              const dateStr    = format(date, 'yyyy-MM-dd');
+              const isSelected = format(selectedDate, 'yyyy-MM-dd') === dateStr;
               return (
                 <button
-                  key={date.toISOString()}
+                  key={dateStr}
                   onClick={() => setSelectedDate(date)}
                   className={`flex flex-col items-center rounded-xl px-3 py-2 text-center transition
                     ${isSelected ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
@@ -100,14 +99,14 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
             <div className="grid grid-cols-3 gap-2">
               {slots.map((slot) => (
                 <button
-                  key={slot.id}
+                  key={slot.slot_start}
                   onClick={() => setSelectedSlot(slot)}
                   className={`rounded-xl px-3 py-2.5 text-sm font-medium transition
-                    ${selectedSlot?.id === slot.id
+                    ${selectedSlot?.slot_start === slot.slot_start
                       ? 'bg-brand-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
-                  {formatTime(slot.startsAt)}
+                  {formatTime(slot.slot_start)}
                 </button>
               ))}
             </div>
