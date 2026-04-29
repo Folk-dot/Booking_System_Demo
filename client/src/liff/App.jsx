@@ -13,7 +13,6 @@ export default function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    console.log(import.meta.env.VITE_LIFF_ID)
     async function initLiff() {
       try {
         await liff.init({ liffId: import.meta.env.VITE_LIFF_ID });
@@ -42,6 +41,7 @@ export default function App() {
       <div className="flex min-h-screen items-center justify-center p-6 text-center">
         <div>
           <p className="text-red-500 font-medium">{error}</p>
+          <p>{import.meta.env.VITE_LIFF_ID}</p>
           <button onClick={() => window.location.reload()} className="btn-primary mt-4">
             ลองใหม่
           </button>
