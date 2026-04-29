@@ -13,6 +13,7 @@ export default function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    console.log(import.meta.env.VITE_LIFF_ID)
     async function initLiff() {
       try {
         await liff.init({ liffId: import.meta.env.VITE_LIFF_ID });
