@@ -15,7 +15,7 @@ export default function App() {
   useEffect(() => {
     async function initLiff() {
       try {
-        await liff.init({ liffId: import.meta.env.VITE_LIFF_ID });
+        await liff.init({ liffId: '2009823555-sEdLimO1' });
 
         if (!liff.isLoggedIn()) {
           liff.login(); // redirects to LINE login
