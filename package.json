@@ -1,15 +1,7 @@
 {
   "name": "booking-system",
   "private": true,
-  "workspaces": [
-    "client",
-    "server"
-  ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=server\" \"npm run dev --workspace=client\"",
-    "install:all": "npm install && npm install --workspace=client && npm install --workspace=server"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2"
+    "dev": "npm run dev --prefix client"
   }
 }
