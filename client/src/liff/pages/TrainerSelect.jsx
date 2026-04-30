@@ -22,8 +22,8 @@ export default function TrainerSelect() {
   return (
     <div className="p-4">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">เลือกเทรนเนอร์</h1>
-        <p className="mt-1 text-sm text-gray-500">เลือกเทรนเนอร์เพื่อดูเวลาว่าง</p>
+        <h1 className="text-xl font-bold text-gray-900">เลือกแพทย์</h1>
+        <p className="mt-1 text-sm text-gray-500">เลือกแพทย์เพื่อดูเวลาว่าง</p>
       </div>
 
       <ErrorMessage message={error} />
