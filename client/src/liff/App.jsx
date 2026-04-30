@@ -47,7 +47,7 @@ export default function App() {
           </button>
         </div>
       </div>
-    );
+    );  
   }
 
   if (!ready) return <LoadingSpinner text="กำลังเข้าสู่ระบบ..." />;
