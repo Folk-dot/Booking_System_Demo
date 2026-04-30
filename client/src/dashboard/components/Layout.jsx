@@ -38,9 +38,13 @@ const NAV = [
 export default function Layout() {
   const navigate = useNavigate();
   const [trainerName, setTrainerName] = useState('');
+  const [tenantName, setTenantName]   = useState('');
 
   useEffect(() => {
-    getMyProfile().then((p) => setTrainerName(p.name)).catch(() => {});
+    getMyProfile().then((p) => {
+      setTrainerName(p.name);
+      setTenantName(p.tenants?.name || '');
+    }).catch(() => {});
   }, []);
 
   async function handleLogout() {
@@ -52,7 +56,7 @@ export default function Layout() {
     <div className="flex min-h-screen bg-gray-50">
       <aside className="hidden w-60 flex-col border-r border-gray-200 bg-white md:flex">
         <div className="border-b border-gray-100 px-5 py-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">The Hangar Martial Arts Gym</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">{tenantName}</p>
           <p className="mt-1 truncate font-semibold text-gray-900">{trainerName || 'Trainer'}</p>
         </div>
 

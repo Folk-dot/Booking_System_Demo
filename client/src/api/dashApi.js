@@ -25,7 +25,7 @@ export async function getMyProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from('trainers')
-    .select('*')
+    .select('*, tenants ( name )')
     .eq('id', user.id)
     .single();
   if (error) throw error;
