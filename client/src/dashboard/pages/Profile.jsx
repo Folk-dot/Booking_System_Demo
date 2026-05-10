@@ -5,14 +5,14 @@ import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 
 export default function Profile() {
-  const [form, setForm] = useState({ name: '', bio: '', specialty: '', avatar_url: '' });
+  const [form, setForm]     = useState({ name: '', bio: '', specialty: '', avatar_url: '' });
   const [pwForm, setPwForm] = useState({ newPassword: '', confirmPassword: '' });
-  const [loading, setLoading]   = useState(true);
-  const [saving, setSaving]     = useState(false);
-  const [savingPw, setSavingPw] = useState(false);
-  const [error, setError]       = useState('');
-  const [success, setSuccess]   = useState('');
-  const [pwError, setPwError]   = useState('');
+  const [loading, setLoading]     = useState(true);
+  const [saving, setSaving]       = useState(false);
+  const [savingPw, setSavingPw]   = useState(false);
+  const [error, setError]         = useState('');
+  const [success, setSuccess]     = useState('');
+  const [pwError, setPwError]     = useState('');
   const [pwSuccess, setPwSuccess] = useState('');
 
   useEffect(() => {
@@ -32,9 +32,9 @@ export default function Profile() {
     setSaving(true);
     try {
       await updateMyProfile({
-        name:      form.name,
-        bio:       form.bio || null,
-        specialty: form.specialty || null,
+        name:       form.name,
+        bio:        form.bio || null,
+        specialty:  form.specialty || null,
         avatar_url: form.avatar_url || null,
       });
       setSuccess('Profile updated successfully');
@@ -76,7 +76,7 @@ export default function Profile() {
       <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
 
       {/* Basic info */}
-      <form onSubmit={handleSubmit} className="card space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="font-semibold text-gray-900">Basic info</h2>
 
         <div>
@@ -87,13 +87,13 @@ export default function Profile() {
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Specialty</label>
           <input name="specialty" value={form.specialty} onChange={handleChange}
-            placeholder="e.g. Muay Thai, Yoga, Strength Training" className="input" />
+            placeholder="e.g. Cardiology, Physiotherapy, Personal Training" className="input" />
         </div>
 
         <div>
           <label className="mb-1.5 block text-sm font-medium text-gray-700">Bio</label>
           <textarea name="bio" value={form.bio} onChange={handleChange}
-            rows={3} className="input resize-none" placeholder="Tell trainees about yourself..." />
+            rows={3} className="input resize-none" placeholder="Tell clients about yourself..." />
         </div>
 
         <div>
@@ -102,13 +102,13 @@ export default function Profile() {
             type="url" placeholder="https://..." className="input" />
           {form.avatar_url && (
             <img src={form.avatar_url} alt="Preview"
-              className="mt-2 h-16 w-16 rounded-full object-cover ring-2 ring-gray-100" />
+              className="mt-2 h-14 w-14 rounded-full object-cover ring-2 ring-gray-200" />
           )}
         </div>
 
         <ErrorMessage message={error} />
         {success && (
-          <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700 ring-1 ring-green-200">{success}</div>
+          <div className="rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700">{success}</div>
         )}
 
         <button type="submit" disabled={saving} className="btn-primary w-full">
@@ -117,7 +117,7 @@ export default function Profile() {
       </form>
 
       {/* Password change */}
-      <form onSubmit={handlePasswordChange} className="card space-y-4">
+      <form onSubmit={handlePasswordChange} className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
         <h2 className="font-semibold text-gray-900">
           Change password <span className="text-xs font-normal text-gray-400">(optional)</span>
         </h2>
@@ -137,7 +137,7 @@ export default function Profile() {
 
         <ErrorMessage message={pwError} />
         {pwSuccess && (
-          <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700 ring-1 ring-green-200">{pwSuccess}</div>
+          <div className="rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700">{pwSuccess}</div>
         )}
 
         <button type="submit" disabled={savingPw} className="btn-primary w-full">

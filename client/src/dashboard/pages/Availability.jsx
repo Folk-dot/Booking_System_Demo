@@ -8,22 +8,26 @@ import {
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const HOURS = Array.from({ length: 25 }, (_, i) => `${String(Math.floor(i / 2) + 7).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`).slice(0, 26); // 07:00–19:00 in 30-min steps
+const DAYS  = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const HOURS = Array.from({ length: 25 }, (_, i) =>
+  `${String(Math.floor(i / 2) + 7).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+).slice(0, 26);
 
 function todayStr() {
   return format(new Date(), 'yyyy-MM-dd');
 }
 
-// ── Weekly Schedule Editor ───────────────────────────────────
+// ── Weekly Schedule Editor ────────────────────────────────────
 
 function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
-  const [saving, setSaving] = useState(null);
+  const [saving, setSaving]     = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [adding, setAdding] = useState(null); // day_of_week being added
+  const [adding, setAdding]     = useState(null);
   const [newWindow, setNewWindow] = useState({ start_time: '09:00', end_time: '17:00' });
 
-  const byDay = Object.fromEntries(DAYS.map((_, i) => [i, schedules.filter((s) => s.day_of_week === i)]));
+  const byDay = Object.fromEntries(
+    DAYS.map((_, i) => [i, schedules.filter((s) => s.day_of_week === i)])
+  );
 
   async function handleAdd(dow) {
     setSaving(dow);
@@ -57,22 +61,23 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
   }
 
   return (
-    <div className="card">
-      <h2 className="mb-4 font-semibold text-gray-900">Weekly Schedule</h2>
-      <p className="mb-5 text-sm text-gray-500">Set your recurring availability. This repeats every week.</p>
-      <div className="space-y-2">
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <h2 className="font-semibold text-gray-900">Weekly Schedule</h2>
+      <p className="mt-1 mb-5 text-sm text-gray-500">Set your recurring availability. This repeats every week.</p>
+
+      <div className="space-y-1.5">
         {DAYS.map((label, dow) => (
-          <div key={dow} className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
-            <span className="w-10 text-sm font-medium text-gray-700">{label}</span>
+          <div key={dow} className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+            <span className="w-9 text-sm font-medium text-gray-600">{label}</span>
 
             <div className="flex flex-wrap gap-2">
               {byDay[dow].map((s) => (
-                <div key={s.id} className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-1.5 text-sm text-brand-700 ring-1 ring-brand-200">
+                <div key={s.id} className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700">
                   <span>{s.start_time.slice(0, 5)} – {s.end_time.slice(0, 5)}</span>
                   <button
                     onClick={() => handleDelete(s.id)}
                     disabled={deleting === s.id}
-                    className="ml-1 text-brand-400 hover:text-red-500"
+                    className="ml-1 text-gray-300 transition hover:text-red-500"
                   >
                     {deleting === s.id ? '...' : '✕'}
                   </button>
@@ -93,17 +98,17 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
                     {HOURS.map((h) => <option key={h}>{h}</option>)}
                   </select>
                   <button onClick={() => handleAdd(dow)} disabled={saving === dow}
-                    className="btn-primary py-1 px-3 text-sm">
+                    className="btn-primary px-3 py-1 text-sm">
                     {saving === dow ? '...' : 'Add'}
                   </button>
-                  <button onClick={() => setAdding(null)} className="btn-secondary py-1 px-3 text-sm">
+                  <button onClick={() => setAdding(null)} className="btn-secondary px-3 py-1 text-sm">
                     Cancel
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => setAdding(dow)}
-                  className="rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm text-gray-400 hover:border-brand-400 hover:text-brand-600"
+                  className="rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-sm text-gray-400 transition hover:border-gray-500 hover:text-gray-600"
                 >
                   + Add window
                 </button>
@@ -116,14 +121,14 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
   );
 }
 
-// ── Override Calendar ────────────────────────────────────────
+// ── Override Calendar ─────────────────────────────────────────
 
 function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
-  const [editing, setEditing] = useState(null); // date string being edited
-  const [form, setForm] = useState({ is_day_off: true, start_time: '09:00', end_time: '17:00', note: '' });
-  const [saving, setSaving] = useState(false);
-  const [deleting, setDeleting] = useState(null);
+  const [editing, setEditing]     = useState(null);
+  const [form, setForm]           = useState({ is_day_off: true, start_time: '09:00', end_time: '17:00', note: '' });
+  const [saving, setSaving]       = useState(false);
+  const [deleting, setDeleting]   = useState(null);
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const overrideByDate = Object.fromEntries(overrides.map((o) => [o.date, o]));
@@ -176,19 +181,21 @@ function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
   }
 
   return (
-    <div className="card">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="rounded-xl border border-gray-200 bg-white p-5">
+      <div className="mb-5 flex items-center justify-between">
         <div>
           <h2 className="font-semibold text-gray-900">Date Overrides</h2>
-          <p className="text-sm text-gray-500">Block a day or set custom hours for specific dates.</p>
+          <p className="mt-1 text-sm text-gray-500">Block a day or set custom hours for specific dates.</p>
         </div>
-        <div className="flex rounded-xl border border-gray-200 bg-white">
+        <div className="flex overflow-hidden rounded-lg border border-gray-200">
           <button onClick={() => setWeekStart((w) => subWeeks(w, 1))}
-            className="px-3 py-2 text-gray-500 hover:text-gray-900">‹</button>
+            className="px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-900">‹</button>
           <button onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }))}
-            className="border-x border-gray-200 px-3 py-2 text-xs font-medium text-gray-600">Today</button>
+            className="border-x border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50">
+            Today
+          </button>
           <button onClick={() => setWeekStart((w) => addWeeks(w, 1))}
-            className="px-3 py-2 text-gray-500 hover:text-gray-900">›</button>
+            className="px-3 py-2 text-sm text-gray-500 transition hover:bg-gray-100 hover:text-gray-900">›</button>
         </div>
       </div>
 
@@ -197,36 +204,43 @@ function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
           const dateStr  = format(day, 'yyyy-MM-dd');
           const override = overrideByDate[dateStr];
           const isPast   = dateStr < todayStr();
+          const isToday  = dateStr === todayStr();
 
           return (
             <div key={dateStr} className="min-h-[90px]">
-              <div className={`mb-2 rounded-lg px-2 py-1.5 text-center text-xs font-medium
-                ${dateStr === todayStr() ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
-                <div>{format(day, 'EEE')}</div>
-                <div className="text-base font-bold">{format(day, 'd')}</div>
+              <div className={`mb-2 rounded-lg px-2 py-1.5 text-center
+                ${isToday ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                <div className="text-[10px] font-medium">{format(day, 'EEE')}</div>
+                <div className="text-base font-bold leading-tight">{format(day, 'd')}</div>
               </div>
 
               {override ? (
                 <div className={`rounded-lg p-2 text-xs ring-1
-                  ${override.is_day_off ? 'bg-red-50 ring-red-200 text-red-700' : 'bg-amber-50 ring-amber-200 text-amber-700'}`}>
-                  {override.is_day_off ? 'Day off' : `${override.start_time?.slice(0,5)}–${override.end_time?.slice(0,5)}`}
-                  {override.note && <p className="mt-0.5 truncate text-[10px] opacity-70">{override.note}</p>}
+                  ${override.is_day_off
+                    ? 'bg-red-50 text-red-600 ring-red-200'
+                    : 'bg-amber-50 text-amber-700 ring-amber-200'}`}>
+                  {override.is_day_off
+                    ? 'Day off'
+                    : `${override.start_time?.slice(0, 5)}–${override.end_time?.slice(0, 5)}`}
+                  {override.note && (
+                    <p className="mt-0.5 truncate text-[10px] opacity-70">{override.note}</p>
+                  )}
                   <div className="mt-1.5 flex gap-1">
                     {!isPast && (
                       <button onClick={() => openEdit(dateStr, override)}
-                        className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200 hover:text-brand-600">
+                        className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200 transition hover:text-gray-900">
                         Edit
                       </button>
                     )}
                     <button onClick={() => handleDelete(override.id)} disabled={deleting === override.id}
-                      className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200 hover:text-red-600">
+                      className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium text-gray-500 ring-1 ring-gray-200 transition hover:text-red-600">
                       {deleting === override.id ? '...' : '✕'}
                     </button>
                   </div>
                 </div>
               ) : !isPast ? (
                 <button onClick={() => openEdit(dateStr, null)}
-                  className="w-full rounded-lg border border-dashed border-gray-200 p-2 text-[11px] text-gray-400 hover:border-brand-300 hover:text-brand-500">
+                  className="w-full rounded-lg border border-dashed border-gray-200 p-2 text-[11px] text-gray-400 transition hover:border-gray-400 hover:text-gray-600">
                   Override
                 </button>
               ) : null}
@@ -235,19 +249,19 @@ function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
         })}
       </div>
 
-      {/* Edit modal */}
+      {/* Override edit modal */}
       {editing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <h3 className="mb-4 font-semibold text-gray-900">Override — {editing}</h3>
 
-            <div className="mb-4 flex gap-3">
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <div className="mb-4 flex gap-4">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
                 <input type="radio" checked={form.is_day_off}
                   onChange={() => setForm((f) => ({ ...f, is_day_off: true }))} />
                 Block day
               </label>
-              <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-700">
                 <input type="radio" checked={!form.is_day_off}
                   onChange={() => setForm((f) => ({ ...f, is_day_off: false }))} />
                 Custom hours
@@ -270,8 +284,8 @@ function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
               </div>
             )}
 
-            <div className="mb-4">
-              <label className="mb-1 block text-xs font-medium text-gray-600">Note (optional)</label>
+            <div className="mb-5">
+              <label className="mb-1.5 block text-xs font-medium text-gray-500">Note (optional)</label>
               <input value={form.note}
                 onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))}
                 placeholder="e.g. Public holiday, personal event"
@@ -291,12 +305,12 @@ function OverrideCalendar({ overrides, trainerId, tenantId, onRefresh }) {
   );
 }
 
-// ── Main page ────────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────
 
 export default function Availability() {
   const [schedules, setSchedules] = useState([]);
   const [overrides, setOverrides] = useState([]);
-  const [profile,   setProfile]   = useState(null);
+  const [profile, setProfile]     = useState(null);
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState('');
 
@@ -319,7 +333,7 @@ export default function Availability() {
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <LoadingSpinner text="Loading availability..." />;
+  if (loading) return <LoadingSpinner text="Loading..." />;
 
   return (
     <div className="space-y-6">

@@ -47,22 +47,23 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center">
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-6 shadow-xl sm:rounded-2xl">
+      <div className="w-full max-w-md rounded-t-2xl bg-white p-6 shadow-xl sm:rounded-2xl">
+        {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">Reschedule</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <h2 className="text-base font-bold text-gray-900">Reschedule booking</h2>
+          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        <div className="mb-4 rounded-xl bg-gray-50 px-4 py-3 text-sm">
-          <p className="font-medium text-gray-900">{trainee?.display_name || 'LINE User'}</p>
-          <p className="text-gray-500">{formatDateRange(booking.starts_at, booking.ends_at)}</p>
+        {/* Current booking summary */}
+        <div className="mb-4 rounded-xl border border-gray-200 px-4 py-3 text-sm">
+          <p className="font-semibold text-gray-900">{trainee?.display_name || 'LINE User'}</p>
+          <p className="mt-0.5 text-gray-500">{formatDateRange(booking.starts_at, booking.ends_at)}</p>
           {booking.event_types && (
-            <span className="mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-medium text-white"
-              style={{ backgroundColor: booking.event_types.color || '#3B82F6' }}>
+            <span className="mt-1.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
               {booking.event_types.name}
             </span>
           )}
@@ -70,7 +71,7 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
 
         {/* Date strip */}
         <div className="-mx-2 overflow-x-auto">
-          <div className="flex gap-2 px-2 pb-3" style={{ width: 'max-content' }}>
+          <div className="flex gap-1.5 px-2 pb-3" style={{ width: 'max-content' }}>
             {dates.map((date) => {
               const dateStr    = format(date, 'yyyy-MM-dd');
               const isSelected = format(selectedDate, 'yyyy-MM-dd') === dateStr;
@@ -78,18 +79,18 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
                 <button
                   key={dateStr}
                   onClick={() => setSelectedDate(date)}
-                  className={`flex flex-col items-center rounded-xl px-3 py-2 text-center transition
-                    ${isSelected ? 'bg-brand-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                  className={`flex flex-col items-center rounded-lg px-3 py-2 text-center transition
+                    ${isSelected ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                 >
-                  <span className="text-xs">{format(date, 'EEE')}</span>
-                  <span className="text-base font-bold">{format(date, 'd')}</span>
+                  <span className="text-[10px] font-medium">{format(date, 'EEE')}</span>
+                  <span className="text-base font-bold leading-none mt-0.5">{format(date, 'd')}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Slots */}
+        {/* Time slots */}
         <div className="my-3 max-h-48 overflow-y-auto">
           {loadingSlots ? (
             <LoadingSpinner text="Loading slots..." />
@@ -101,9 +102,9 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
                 <button
                   key={slot.slot_start}
                   onClick={() => setSelectedSlot(slot)}
-                  className={`rounded-xl px-3 py-2.5 text-sm font-medium transition
+                  className={`rounded-lg px-3 py-2.5 text-sm font-medium transition
                     ${selectedSlot?.slot_start === slot.slot_start
-                      ? 'bg-brand-600 text-white'
+                      ? 'bg-gray-900 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   {formatTime(slot.slot_start)}
@@ -115,7 +116,7 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
 
         <ErrorMessage message={error} />
 
-        <div className="mt-4 flex gap-3">
+        <div className="mt-4 flex gap-2">
           <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
           <button
             onClick={handleReschedule}
