@@ -9,11 +9,10 @@ export default function Confirm() {
   const navigate  = useNavigate();
   const { slot, trainer, eventType } = state || {};
 
-  const [notes, setNotes]   = useState('');
+  const [notes, setNotes]     = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError]   = useState('');
+  const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
-  const [bookingId, setBookingId] = useState(null);
 
   if (!slot || !trainer || !eventType) {
     navigate('/');
@@ -24,14 +23,13 @@ export default function Confirm() {
     setLoading(true);
     setError('');
     try {
-      const booking = await createBooking({
+      await createBooking({
         trainerId:   trainer.id,
         eventTypeId: eventType.id,
         startsAt:    slot.slot_start,
         endsAt:      slot.slot_end,
         notes:       notes || undefined,
       });
-      setBookingId(booking.id);
       setSuccess(true);
     } catch (err) {
       const msg = err.message || '';
@@ -47,81 +45,93 @@ export default function Confirm() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center">
-        <div className="mb-4 text-6xl">✅</div>
-        <h2 className="mb-2 text-xl font-bold text-gray-900">จองสำเร็จแล้ว!</h2>
-        <p className="mb-1 font-medium text-gray-700">{trainer.name}</p>
-        <p className="mb-1 text-sm text-brand-600">{eventType.name}</p>
-        <p className="mb-6 text-sm text-gray-500">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
-        <p className="mb-8 text-sm text-gray-400">คุณจะได้รับข้อความยืนยันทาง LINE</p>
-        <button onClick={() => navigate('/liff')} className="btn-primary w-full">กลับหน้าหลัก</button>
-        <button onClick={() => navigate('/my-bookings')} className="btn-secondary mt-3 w-full">
-          ดูการจองของฉัน
-        </button>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center">
+        <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-gray-900">
+          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="mb-1 text-xl font-bold text-gray-900">Booking confirmed</h2>
+        <p className="text-sm text-gray-500">{trainer.name} · {eventType.name}</p>
+        <p className="mt-1 text-sm text-gray-400">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
+        <p className="mt-4 text-xs text-gray-300">You'll receive a confirmation via LINE</p>
+        <div className="mt-8 w-full space-y-2">
+          <button onClick={() => navigate('/liff')} className="btn-primary w-full">Back to home</button>
+          <button onClick={() => navigate('/my-bookings')} className="btn-secondary w-full">View my bookings</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col p-4">
-      <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-1 text-sm text-gray-500">
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        กลับ
-      </button>
-
-      <h1 className="mb-6 text-xl font-bold text-gray-900">ยืนยันการจอง</h1>
-
-      <div className="card mb-6 space-y-4">
-        <div className="flex items-center gap-3">
-          {trainer.avatar_url ? (
-            <img src={trainer.avatar_url} alt={trainer.name} className="h-12 w-12 rounded-full object-cover" />
-          ) : (
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-700">
-              {trainer.name.charAt(0)}
-            </div>
-          )}
-          <div>
-            <p className="font-semibold text-gray-900">{trainer.name}</p>
-            {trainer.specialty && <p className="text-xs text-brand-600">{trainer.specialty}</p>}
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 pt-4 space-y-3">
-          <div>
-            <p className="text-xs text-gray-500">ประเภทการจอง</p>
-            <p className="mt-0.5 font-medium text-gray-900">
-              <span className="mr-2 inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: eventType.color || '#3B82F6' }} />
-              {eventType.name} ({eventType.duration_minutes} นาที)
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">วัน/เวลา</p>
-            <p className="mt-0.5 font-medium text-gray-900">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <label className="mb-1.5 block text-sm font-medium text-gray-700">หมายเหตุ (ไม่บังคับ)</label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="เช่น เป้าหมาย, อาการบาดเจ็บ..."
-          rows={3}
-          className="input resize-none"
-        />
-      </div>
-
-      <ErrorMessage message={error} />
-
-      <div className="mt-auto space-y-3">
-        <button onClick={handleConfirm} disabled={loading} className="btn-primary w-full">
-          {loading ? 'กำลังจอง...' : 'ยืนยันการจอง'}
+    <div className="flex min-h-screen flex-col bg-white">
+      <div className="border-b border-gray-100 px-5 pb-4 pt-5">
+        <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-1 text-xs text-gray-400 transition hover:text-gray-600">
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back
         </button>
-        <button onClick={() => navigate(-1)} className="btn-secondary w-full">ยกเลิก</button>
+        <h1 className="text-xl font-bold text-gray-900">Confirm booking</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        {/* Booking summary */}
+        <div className="rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center gap-3">
+            {trainer.avatar_url ? (
+              <img src={trainer.avatar_url} alt={trainer.name} className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
+                {trainer.name.charAt(0)}
+              </div>
+            )}
+            <div>
+              <p className="font-semibold text-gray-900">{trainer.name}</p>
+              {trainer.specialty && <p className="text-xs text-gray-400">{trainer.specialty}</p>}
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3 border-t border-gray-100 pt-4">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Session</p>
+              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                {eventType.name} · {eventType.duration_minutes} min
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">Date & Time</p>
+              <p className="mt-0.5 text-sm font-medium text-gray-900">
+                {formatDateRange(slot.slot_start, slot.slot_end)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Notes */}
+        <div className="mt-5">
+          <label className="mb-1.5 block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+            Notes (optional)
+          </label>
+          <textarea
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            placeholder="e.g. Goals, injuries, requests..."
+            rows={3}
+            className="input resize-none"
+          />
+        </div>
+
+        <div className="mt-4">
+          <ErrorMessage message={error} />
+        </div>
+      </div>
+
+      <div className="border-t border-gray-100 px-5 py-4 space-y-2">
+        <button onClick={handleConfirm} disabled={loading} className="btn-primary w-full">
+          {loading ? 'Confirming...' : 'Confirm booking'}
+        </button>
+        <button onClick={() => navigate(-1)} className="btn-secondary w-full">Cancel</button>
       </div>
     </div>
   );

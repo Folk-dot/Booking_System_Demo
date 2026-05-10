@@ -20,52 +20,56 @@ export default function TrainerSelect() {
   if (loading) return <LoadingSpinner text="กำลังโหลด..." />;
 
   return (
-    <div className="p-4">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">รายชื่อ</h1>
-        <p className="mt-1 text-sm text-gray-500">กรุณาคลิกเพื่อดูเวลาว่าง</p>
+    <div className="flex h-screen flex-col bg-white">
+      <div className="border-b border-gray-100 px-5 pb-4 pt-6">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Booking</p>
+        <h1 className="mt-1 text-xl font-bold text-gray-900">Select a trainer</h1>
       </div>
 
-      <ErrorMessage message={error} />
+      <div className="flex-1 overflow-y-auto px-5 py-4">
+        <ErrorMessage message={error} />
 
-      <div className="space-y-3">
-        {trainers.map((trainer) => (
-          <button
-            key={trainer.id}
-            onClick={() => navigate(`/slots/${trainer.id}`, { state: { trainer } })}
-            className="flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left
-                       shadow-sm ring-1 ring-gray-100 transition hover:ring-brand-400 active:scale-[0.98]"
-          >
-            {trainer.avatar_url ? (
-              <img src={trainer.avatar_url} alt={trainer.name}
-                className="h-14 w-14 rounded-full object-cover" />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-100 text-xl font-bold text-brand-700">
-                {trainer.name.charAt(0)}
+        <div className="space-y-2">
+          {trainers.map(trainer => (
+            <button
+              key={trainer.id}
+              onClick={() => navigate(`/slots/${trainer.id}`, { state: { trainer } })}
+              className="flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.99]"
+            >
+              {trainer.avatar_url ? (
+                <img
+                  src={trainer.avatar_url}
+                  alt={trainer.name}
+                  className="h-12 w-12 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 text-base font-semibold text-white">
+                  {trainer.name.charAt(0)}
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-gray-900">{trainer.name}</p>
+                {trainer.specialty && (
+                  <p className="mt-0.5 text-xs text-gray-500">{trainer.specialty}</p>
+                )}
+                {trainer.bio && (
+                  <p className="mt-1 line-clamp-1 text-xs text-gray-400">{trainer.bio}</p>
+                )}
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-gray-900">{trainer.name}</p>
-              {trainer.specialty && (
-                <p className="mt-0.5 text-xs font-medium text-brand-600">{trainer.specialty}</p>
-              )}
-              {trainer.bio && (
-                <p className="mt-1 line-clamp-2 text-xs text-gray-500">{trainer.bio}</p>
-              )}
-            </div>
-            <svg className="h-5 w-5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        ))}
-      </div>
+              <svg className="h-4 w-4 shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ))}
+        </div>
 
-      <button
-        onClick={() => navigate('/my-bookings')}
-        className="mt-6 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50"
-      >
-        ดูการจองของฉัน
-      </button>
+        <button
+          onClick={() => navigate('/my-bookings')}
+          className="mt-4 w-full rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-500 transition hover:bg-gray-50"
+        >
+          View my bookings
+        </button>
+      </div>
     </div>
   );
 }
