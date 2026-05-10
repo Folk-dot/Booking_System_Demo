@@ -1,5 +1,7 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/liff.html" }
+    { "source": "/liff",      "destination": "/liff.html" },
+    { "source": "/liff/(.*)", "destination": "/liff.html" },
+    { "source": "/(.*)",      "destination": "/dashboard.html" }
   ]
 }

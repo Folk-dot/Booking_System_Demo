@@ -44,7 +44,7 @@ export default function MyBookings() {
         ) : bookings.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-sm font-medium text-gray-400">No bookings yet</p>
-            <button onClick={() => navigate('/liff')} className="btn-primary mt-5">Book a session</button>
+            <button onClick={() => navigate('/')} className="btn-primary mt-5">Book a session</button>
           </div>
         ) : (
           <div className="space-y-2">

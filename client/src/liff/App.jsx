@@ -43,7 +43,7 @@ export default function App() {
         <div>
           <p className="text-red-500 font-medium">{error}</p>
           <button onClick={() => window.location.reload()} className="btn-primary mt-4">
-            ลองใหม่
+            Try again
           </button>
         </div>
       </div>
@@ -53,14 +53,14 @@ export default function App() {
   if (!ready) return <LoadingSpinner text="Login..." />;
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/liff">
       <div className="mx-auto min-h-screen max-w-md bg-white">
         <Routes>
-          <Route path="/liff"                element={<TrainerSelect />} />
+          <Route path="/"                    element={<TrainerSelect />} />
           <Route path="/slots/:trainerId"    element={<SlotPicker />} />
           <Route path="/confirm"             element={<Confirm />} />
           <Route path="/my-bookings"         element={<MyBookings />} />
-          <Route path="*"                    element={<Navigate to="/liff" replace />} />
+          <Route path="*"                    element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>

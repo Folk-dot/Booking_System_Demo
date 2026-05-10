@@ -56,7 +56,7 @@ export default function Confirm() {
         <p className="mt-1 text-sm text-gray-400">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
         <p className="mt-4 text-xs text-gray-300">You'll receive a confirmation via LINE</p>
         <div className="mt-8 w-full space-y-2">
-          <button onClick={() => navigate('/liff')} className="btn-primary w-full">Back to home</button>
+          <button onClick={() => navigate('/')} className="btn-primary w-full">Back to home</button>
           <button onClick={() => navigate('/my-bookings')} className="btn-secondary w-full">View my bookings</button>
         </div>
       </div>

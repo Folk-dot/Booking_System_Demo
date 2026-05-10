@@ -8,7 +8,8 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, 'src') },
   },
   build: {
-    outDir: 'dist/dashboard',
+    outDir: 'dist',
+    emptyOutDir: false,
     rollupOptions: {
       input: path.resolve(__dirname, 'dashboard.html'),
     },

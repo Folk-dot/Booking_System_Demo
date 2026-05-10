@@ -8,7 +8,8 @@ export default defineConfig({
     alias: { '@': path.resolve(__dirname, 'src') },
   },
   build: {
-    outDir: 'dist/liff',
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'liff.html'),
     },
