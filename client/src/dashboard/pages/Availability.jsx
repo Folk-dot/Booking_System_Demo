@@ -39,7 +39,7 @@ function TimeSelect({ value, onChange }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
+      className="rounded-lg border border-gray-200 bg-white pl-3 pr-7 py-1.5 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
     >
       {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
     </select>
@@ -64,7 +64,7 @@ function IconBtn({ onClick, disabled, title, danger, children }) {
 
 // ── Calendar for override modal ───────────────────────────────
 
-function OverrideCalendarPicker({ selectedDate, onSelectDate }) {
+function OverrideCalendarPicker({ selectedDate, onSelectDate, byDay = {} }) {
   const [viewMonth, setViewMonth] = useState(startOfMonth(new Date()));
   const today = startOfDay(new Date());
 
@@ -102,9 +102,10 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate }) {
 
       <div className="grid grid-cols-7">
         {days.map(day => {
-          const isOutside  = !isSameMonth(day, viewMonth);
-          const isSelected = selectedDate && isSameDay(day, selectedDate);
-          const isToday    = isSameDay(day, today);
+          const isOutside   = !isSameMonth(day, viewMonth);
+          const isSelected  = selectedDate && isSameDay(day, selectedDate);
+          const isToday     = isSameDay(day, today);
+          const isAvailable = (byDay[day.getDay()] ?? []).length > 0;
 
           if (isOutside) return <div key={day.toISOString()} />;
 
@@ -113,13 +114,16 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate }) {
               key={day.toISOString()}
               onClick={() => onSelectDate(day)}
               className={[
-                'mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition',
+                'relative mx-auto flex h-9 w-9 flex-col items-center justify-center rounded-full text-sm transition',
                 isSelected ? 'bg-gray-900 font-semibold text-white' : '',
                 !isSelected && isToday ? 'font-semibold text-gray-900 ring-1 ring-inset ring-gray-900' : '',
                 !isSelected && !isToday ? 'text-gray-700 hover:bg-gray-100' : '',
               ].filter(Boolean).join(' ')}
             >
-              {format(day, 'd')}
+              <span className="leading-none">{format(day, 'd')}</span>
+              {isAvailable && !isSelected && (
+                <span className="mt-0.5 h-1 w-1 rounded-full bg-emerald-400" />
+              )}
             </button>
           );
         })}
@@ -255,7 +259,10 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
 
 // ── Override Section ──────────────────────────────────────────
 
-function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
+function OverrideSection({ overrides, schedules, trainerId, tenantId, onRefresh }) {
+  const byDay = Object.fromEntries(
+    Array.from({ length: 7 }, (_, i) => [i, schedules.filter(s => s.day_of_week === i)])
+  );
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isDayOff, setIsDayOff]         = useState(false);
@@ -348,17 +355,18 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
 
       {/* Override modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40">
+          <div className="flex min-h-full items-center justify-center p-4">
           <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <div className="flex divide-x divide-gray-100">
-              {/* Left: calendar picker */}
+            <div className="flex flex-col sm:flex-row sm:divide-x divide-gray-100">
+              {/* Top / Left: calendar picker */}
               <div className="flex-1 p-6">
                 <h3 className="mb-5 text-base font-semibold text-gray-900">Select the dates to override</h3>
-                <OverrideCalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                <OverrideCalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} byDay={byDay} />
               </div>
 
-              {/* Right: hours config */}
-              <div className="w-72 p-6">
+              {/* Bottom / Right: hours config */}
+              <div className="border-t border-gray-100 p-6 sm:w-72 sm:border-t-0">
                 <p className="mb-4 text-sm font-semibold text-gray-900">Which hours are you free?</p>
 
                 {!isDayOff && (
@@ -410,6 +418,7 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
                 {saving ? 'Saving...' : 'Save override'}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}
@@ -467,6 +476,7 @@ export default function Availability() {
           />
           <OverrideSection
             overrides={overrides}
+            schedules={schedules}
             trainerId={profile.id}
             tenantId={profile.tenant_id}
             onRefresh={load}
