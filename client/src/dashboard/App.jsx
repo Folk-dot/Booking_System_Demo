@@ -34,7 +34,7 @@ export default function App() {
             <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
     </BrowserRouter>
   );
