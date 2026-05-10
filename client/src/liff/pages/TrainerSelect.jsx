@@ -13,17 +13,17 @@ export default function TrainerSelect() {
   useEffect(() => {
     listTrainers()
       .then(setTrainers)
-      .catch(() => setError('โหลดข้อมูลเทรนเนอร์ไม่สำเร็จ'))
+      .catch(() => setError('โหลดข้อมูลไม่สำเร็จ'))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <LoadingSpinner text="กำลังโหลดเทรนเนอร์..." />;
+  if (loading) return <LoadingSpinner text="กำลังโหลด..." />;
 
   return (
     <div className="p-4">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">เลือกแพทย์</h1>
-        <p className="mt-1 text-sm text-gray-500">เลือกแพทย์เพื่อดูเวลาว่าง</p>
+        <h1 className="text-xl font-bold text-gray-900">รายชื่อ</h1>
+        <p className="mt-1 text-sm text-gray-500">กรุณาคลิกเพื่อดูเวลาว่าง</p>
       </div>
 
       <ErrorMessage message={error} />
