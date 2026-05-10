@@ -39,7 +39,7 @@ function TimeSelect({ value, onChange }) {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-200 bg-white pl-3 pr-7 py-1.5 text-sm text-gray-700 focus:border-gray-400 focus:outline-none"
+      className="rounded-lg border border-gray-200 bg-white pl-3 pr-7 py-1.5 text-base text-gray-700 focus:border-gray-400 focus:outline-none"
     >
       {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
     </select>
@@ -370,9 +370,8 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
 
       {/* Override modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/40">
-          <div className="flex min-h-full items-center justify-center p-4">
-          <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
+          <div className="w-full max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-2xl">
             <div className="flex flex-col sm:flex-row sm:divide-x divide-gray-100">
               {/* Top / Left: calendar picker */}
               <div className="flex-1 p-6">
@@ -433,7 +432,6 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
                 {saving ? 'Saving...' : 'Save override'}
               </button>
             </div>
-          </div>
           </div>
         </div>
       )}
