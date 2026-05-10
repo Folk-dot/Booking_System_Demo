@@ -200,9 +200,9 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
           const isOn    = windows.length > 0;
 
           return (
-            <div key={dow} className="flex items-start gap-6 px-6 py-4">
+            <div key={dow} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-start sm:gap-6 sm:px-6 sm:py-4">
               {/* Toggle + day label */}
-              <div className="flex w-40 shrink-0 items-center gap-3 pt-1">
+              <div className="flex w-full shrink-0 items-center gap-3 sm:w-40 sm:pt-1">
                 <Toggle
                   checked={isOn}
                   onChange={() => handleToggle(dow, isOn)}
@@ -212,7 +212,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
 
               {/* Time windows */}
               {isOn ? (
-                <div className="flex-1 space-y-2">
+                <div className="space-y-2 pl-9 sm:flex-1 sm:pl-0">
                   {windows.map((s, idx) => (
                     <div key={s.id} className="flex items-center gap-2">
                       <TimeSelect
@@ -246,7 +246,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
                   ))}
                 </div>
               ) : (
-                <div className="flex-1 pt-1.5">
+                <div className="pl-9 sm:flex-1 sm:pl-0 sm:pt-1.5">
                   <span className="text-sm text-gray-400">Unavailable</span>
                 </div>
               )}
@@ -469,7 +469,7 @@ export default function Availability() {
   if (loading) return <LoadingSpinner text="Loading..." />;
 
   return (
-    <div className="max-w-lg space-y-5">
+    <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Availability</h1>
         <p className="mt-1 text-sm text-gray-500">
