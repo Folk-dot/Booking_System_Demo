@@ -30,7 +30,7 @@ export default function App() {
         setReady(true);
       } catch (err) {
         console.error('[liff] init error:', err);
-        setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่');
+        setError('Unable to connect. Please try again.');
       }
     }
 
@@ -50,7 +50,7 @@ export default function App() {
     );  
   }
 
-  if (!ready) return <LoadingSpinner text="กำลังเข้าสู่ระบบ..." />;
+  if (!ready) return <LoadingSpinner text="Login..." />;
 
   return (
     <BrowserRouter>
