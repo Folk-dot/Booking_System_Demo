@@ -13,17 +13,17 @@ export default function TrainerSelect() {
   useEffect(() => {
     listTrainers()
       .then(setTrainers)
-      .catch(() => setError('โหลดข้อมูลไม่สำเร็จ'))
+      .catch(() => setError('Failed to Load'))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <LoadingSpinner text="กำลังโหลด..." />;
+  if (loading) return <LoadingSpinner text="Loading..." />;
 
   return (
     <div className="flex h-screen flex-col bg-white">
       <div className="border-b border-gray-100 px-5 pb-4 pt-6">
         <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Booking</p>
-        <h1 className="mt-1 text-xl font-bold text-gray-900">Select a trainer</h1>
+        <h1 className="mt-1 text-xl font-bold text-gray-900">Select a specialist</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 py-4">

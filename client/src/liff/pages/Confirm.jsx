@@ -34,9 +34,9 @@ export default function Confirm() {
     } catch (err) {
       const msg = err.message || '';
       if (msg.includes('duplicate') || msg.includes('unique')) {
-        setError('เวลานี้ถูกจองแล้ว กรุณาเลือกเวลาใหม่');
+        setError('This slot is already booked. Please select another time.');
       } else {
-        setError('เกิดข้อผิดพลาด กรุณาลองใหม่');
+        setError('Something went wrong. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -116,7 +116,7 @@ export default function Confirm() {
           <textarea
             value={notes}
             onChange={e => setNotes(e.target.value)}
-            placeholder="e.g. Goals, injuries, requests..."
+            placeholder="e.g. Symptoms, allergies, medical history, special requests..."
             rows={3}
             className="input resize-none"
           />
@@ -129,7 +129,7 @@ export default function Confirm() {
 
       <div className="border-t border-gray-100 px-5 py-4 space-y-2">
         <button onClick={handleConfirm} disabled={loading} className="btn-primary w-full">
-          {loading ? 'Confirming...' : 'Confirm booking'}
+          {loading ? 'Confirming...' : 'Confirm'}
         </button>
         <button onClick={() => navigate(-1)} className="btn-secondary w-full">Cancel</button>
       </div>

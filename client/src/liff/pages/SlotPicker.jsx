@@ -114,7 +114,7 @@ export default function SlotPicker() {
         setEventTypes(data);
         if (data.length === 1) setSelectedType(data[0]);
       })
-      .catch(() => setError('โหลดประเภทการจองไม่สำเร็จ'))
+      .catch(() => setError('Failed to Load'))
       .finally(() => setLoadingTypes(false));
   }, [trainerId]);
 
@@ -126,7 +126,7 @@ export default function SlotPicker() {
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
     getAvailableSlots(trainerId, selectedType.id, dateStr)
       .then(setSlots)
-      .catch(() => setError('โหลดเวลาว่างไม่สำเร็จ'))
+      .catch(() => setError('Failed to Load'))
       .finally(() => setLoadingSlots(false));
   }, [trainerId, selectedType, selectedDate]);
 
@@ -140,7 +140,7 @@ export default function SlotPicker() {
 
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  if (loadingTypes) return <LoadingSpinner text="กำลังโหลด..." />;
+  if (loadingTypes) return <LoadingSpinner text="Loading..." />;
 
   return (
     <div className="flex h-screen flex-col bg-white">
@@ -167,7 +167,7 @@ export default function SlotPicker() {
           <div>
             <p className="text-xs text-gray-400">{trainer?.name}</p>
             <h1 className="text-lg font-bold leading-tight text-gray-900">
-              {selectedType?.name ?? 'Select session type'}
+              {selectedType?.name ?? 'Select a service'}
             </h1>
           </div>
         </div>
@@ -253,7 +253,7 @@ export default function SlotPicker() {
               <ErrorMessage message={error} />
 
               {loadingSlots ? (
-                <LoadingSpinner text="กำลังโหลดเวลาว่าง..." />
+                <LoadingSpinner text="Loading..." />
               ) : slots.length === 0 ? (
                 <div className="py-10 text-center">
                   <p className="text-sm font-medium text-gray-400">No availability</p>
@@ -279,7 +279,7 @@ export default function SlotPicker() {
 
         {!selectedType && !loadingTypes && eventTypes.length > 1 && (
           <div className="py-16 text-center">
-            <p className="text-sm text-gray-400">Select a session type above to continue</p>
+            <p className="text-sm text-gray-400">Select a service above to continue</p>
           </div>
         )}
       </div>
