@@ -84,41 +84,41 @@ export default async function handler(req, res) {
     if (type === 'booking_confirmed') {
       messages = [{
         type:     'flex',
-        altText:  `✅ จองเทรนเนอร์สำเร็จ — ${trainerName}`,
+        altText:  `✅ Booking confirmed — ${trainerName}`,
         contents: {
           type:   'bubble',
           header: {
             type: 'box', layout: 'vertical', backgroundColor: '#27AE60',
-            contents: [{ type: 'text', text: '✅ จองสำเร็จแล้ว', color: '#FFFFFF', size: 'lg', weight: 'bold' }],
+            contents: [{ type: 'text', text: '✅ Booking confirmed', color: '#FFFFFF', size: 'lg', weight: 'bold' }],
           },
           body: {
             type: 'box', layout: 'vertical', spacing: 'md',
             contents: [
               { type: 'box', layout: 'horizontal', contents: [
-                { type: 'text', text: 'เทรนเนอร์', color: '#666666', size: 'sm', flex: 2 },
+                { type: 'text', text: 'Specialist', color: '#666666', size: 'sm', flex: 2 },
                 { type: 'text', text: trainerName, weight: 'bold', size: 'sm', flex: 3 },
               ]},
               { type: 'box', layout: 'horizontal', contents: [
-                { type: 'text', text: 'วัน/เวลา', color: '#666666', size: 'sm', flex: 2 },
+                { type: 'text', text: 'Date & Time', color: '#666666', size: 'sm', flex: 2 },
                 { type: 'text', text: `${startStr}${endStr ? ' – ' + endStr : ''}`, size: 'sm', flex: 3, wrap: true },
               ]},
               bookingId && { type: 'box', layout: 'horizontal', contents: [
-                { type: 'text', text: 'รหัสการจอง', color: '#666666', size: 'sm', flex: 2 },
+                { type: 'text', text: 'Booking ID', color: '#666666', size: 'sm', flex: 2 },
                 { type: 'text', text: bookingId.slice(0, 8).toUpperCase(), size: 'sm', flex: 3, color: '#888888' },
               ]},
             ].filter(Boolean),
           },
           footer: {
             type: 'box', layout: 'vertical',
-            contents: [{ type: 'text', text: 'หากต้องการยกเลิก กรุณาติดต่อเทรนเนอร์', size: 'xs', color: '#AAAAAA', wrap: true }],
+            contents: [{ type: 'text', text: 'To cancel, please contact your specialist directly.', size: 'xs', color: '#AAAAAA', wrap: true }],
           },
         },
       }];
     } else if (type === 'booking_cancelled') {
-      const by = req.body.cancelledBy === 'trainer' ? 'เทรนเนอร์' : 'คุณ';
+      const by = req.body.cancelledBy === 'trainer' ? 'the specialist' : 'you';
       messages = [{
         type: 'text',
-        text: `❌ การจองถูกยกเลิกโดย${by}\n\nเทรนเนอร์: ${trainerName}\nวัน/เวลา: ${startStr}\n\nหากมีข้อสงสัยกรุณาติดต่อเทรนเนอร์โดยตรง`,
+        text: `❌ Booking cancelled by ${by}\n\nSpecialist: ${trainerName}\nDate & Time: ${startStr}\n\nFor any questions, please contact your specialist directly.`,
       }];
     } else {
       return res.status(400).json({ error: `Unknown notification type: ${type}` });
