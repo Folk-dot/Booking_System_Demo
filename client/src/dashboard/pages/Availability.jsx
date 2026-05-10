@@ -34,12 +34,12 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-function TimeSelect({ value, onChange }) {
+function TimeSelect({ value, onChange, className = 'w-24' }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-200 bg-white pl-3 pr-7 py-1.5 text-base text-gray-700 focus:border-gray-400 focus:outline-none"
+      className={`rounded-lg border border-gray-200 bg-white pl-3 pr-7 py-1.5 text-base text-gray-700 focus:border-gray-400 focus:outline-none ${className}`}
     >
       {HOURS.map((h) => <option key={h} value={h}>{h}</option>)}
     </select>
@@ -100,11 +100,12 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate, overridesByDate = 
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-7 gap-1">
         {days.map(day => {
           const isOutside    = !isSameMonth(day, viewMonth);
           const isSelected   = selectedDate && isSameDay(day, selectedDate);
           const isToday      = isSameDay(day, today);
+          const isPast       = isBefore(day, today) && !isToday;
           const dateStr      = format(day, 'yyyy-MM-dd');
           const hasOverride  = !!overridesByDate[dateStr];
 
@@ -113,17 +114,19 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate, overridesByDate = 
           return (
             <button
               key={day.toISOString()}
-              onClick={() => onSelectDate(day)}
+              onClick={() => !isPast && onSelectDate(day)}
+              disabled={isPast}
               className={[
-                'relative mx-auto flex h-9 w-9 flex-col items-center justify-center rounded-full text-sm transition',
+                'relative mx-auto flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium transition',
                 isSelected ? 'bg-gray-900 font-semibold text-white' : '',
-                !isSelected && isToday ? 'font-semibold text-gray-900 ring-1 ring-inset ring-gray-900' : '',
-                !isSelected && !isToday ? 'text-gray-700 hover:bg-gray-100' : '',
+                !isSelected && isToday ? 'bg-gray-100 font-semibold text-gray-900 ring-2 ring-inset ring-gray-900' : '',
+                !isSelected && !isToday && !isPast ? 'bg-gray-100 text-gray-700 hover:bg-gray-900 hover:text-white' : '',
+                isPast ? 'cursor-not-allowed text-gray-200' : '',
               ].filter(Boolean).join(' ')}
             >
-              <span className="leading-none">{format(day, 'd')}</span>
+              {format(day, 'd')}
               {hasOverride && !isSelected && (
-                <span className="mt-0.5 h-1 w-1 rounded-full bg-gray-400" />
+                <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-red-400" />
               )}
             </button>
           );
@@ -200,56 +203,55 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
           const isOn    = windows.length > 0;
 
           return (
-            <div key={dow} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-start sm:gap-6 sm:px-6 sm:py-4">
+            <div key={dow} className="px-5 py-4 sm:flex sm:items-start sm:gap-3">
               {/* Toggle + day label */}
-              <div className="flex w-full shrink-0 items-center gap-3 sm:w-40 sm:pt-1">
-                <Toggle
-                  checked={isOn}
-                  onChange={() => handleToggle(dow, isOn)}
-                />
-                <span className={`text-sm font-medium ${isOn ? 'text-gray-800' : 'text-gray-400'}`}>{label}</span>
+              <div className="flex items-center gap-3 sm:w-28 sm:shrink-0 sm:pt-1">
+                <Toggle checked={isOn} onChange={() => handleToggle(dow, isOn)} />
+                <span className={`text-sm font-medium ${isOn ? 'text-gray-800' : 'text-gray-400'}`}>
+                  {label}
+                </span>
               </div>
 
               {/* Time windows */}
-              {isOn ? (
-                <div className="space-y-2 pl-9 sm:flex-1 sm:pl-0">
-                  {windows.map((s, idx) => (
-                    <div key={s.id} className="flex items-center gap-2">
-                      <TimeSelect
-                        value={s.start_time.slice(0, 5)}
-                        onChange={(v) => handleTimeChange(s, 'start_time', v)}
-                      />
-                      <span className="text-sm text-gray-400">-</span>
-                      <TimeSelect
-                        value={s.end_time.slice(0, 5)}
-                        onChange={(v) => handleTimeChange(s, 'end_time', v)}
-                      />
-
-                      {idx === 0 && (
-                        <IconBtn onClick={() => handleAddWindow(dow)} disabled={busy === `add-${dow}`} title="Add time window">
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                          </svg>
-                        </IconBtn>
-                      )}
-
-                      <IconBtn onClick={() => handleDelete(s.id)} disabled={busy === `del-${s.id}`} title="Remove" danger>
-                        {busy === `del-${s.id}` ? (
-                          <span className="text-xs">…</span>
-                        ) : (
-                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
+              <div className="min-w-0 flex-1">
+                {isOn ? (
+                  <div className="mt-2.5 space-y-2 sm:mt-0">
+                    {windows.map((s, idx) => (
+                      <div key={s.id} className="flex items-center gap-2">
+                        <TimeSelect
+                          value={s.start_time.slice(0, 5)}
+                          onChange={(v) => handleTimeChange(s, 'start_time', v)}
+                          className="w-24 shrink-0"
+                        />
+                        <span className="shrink-0 text-xs text-gray-300">–</span>
+                        <TimeSelect
+                          value={s.end_time.slice(0, 5)}
+                          onChange={(v) => handleTimeChange(s, 'end_time', v)}
+                          className="w-24 shrink-0"
+                        />
+                        {idx === 0 && (
+                          <IconBtn onClick={() => handleAddWindow(dow)} disabled={busy === `add-${dow}`} title="Add window">
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                          </IconBtn>
                         )}
-                      </IconBtn>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="pl-9 sm:flex-1 sm:pl-0 sm:pt-1.5">
-                  <span className="text-sm text-gray-400">Unavailable</span>
-                </div>
-              )}
+                        <IconBtn onClick={() => handleDelete(s.id)} disabled={busy === `del-${s.id}`} title="Remove" danger>
+                          {busy === `del-${s.id}` ? (
+                            <span className="text-xs">…</span>
+                          ) : (
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          )}
+                        </IconBtn>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-300 sm:mt-0 sm:pt-1">Unavailable</p>
+                )}
+              </div>
             </div>
           );
         })}
@@ -339,7 +341,7 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
               {overrides.map(o => (
                 <div key={o.id} className="flex items-center justify-between px-4 py-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{o.date}</p>
+                    <p className="text-sm font-medium text-gray-900">{format(new Date(o.date + 'T00:00:00'), 'EEE, d MMM yyyy')}</p>
                     <p className="text-xs text-gray-400">
                       {o.is_day_off ? 'Unavailable all day' : `${o.start_time?.slice(0, 5)} – ${o.end_time?.slice(0, 5)}`}
                     </p>
@@ -370,12 +372,18 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
 
       {/* Override modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center sm:p-4">
-          <div className="w-full max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-2xl">
-            <div className="flex flex-col sm:flex-row sm:divide-x divide-gray-100">
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, marginTop: 0 }} className="flex items-end justify-center bg-black/50 sm:items-center">
+          <div className="flex w-full max-h-[90vh] flex-col rounded-t-2xl bg-white shadow-2xl sm:max-w-2xl sm:rounded-2xl">
+            {/* Sticky header */}
+            <div className="shrink-0 border-b border-gray-100 px-6 py-4">
+              <h3 className="text-base font-semibold text-gray-900">Date override</h3>
+              <p className="mt-0.5 text-xs text-gray-400">Select a date then configure hours below</p>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="flex flex-1 flex-col overflow-y-auto sm:flex-row sm:divide-x divide-gray-100">
               {/* Top / Left: calendar picker */}
               <div className="flex-1 p-6">
-                <h3 className="mb-5 text-base font-semibold text-gray-900">Select the dates to override</h3>
                 <OverrideCalendarPicker selectedDate={selectedDate} onSelectDate={handleDateSelect} overridesByDate={overridesByDate} />
               </div>
 
@@ -424,9 +432,10 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
                   <span className="text-sm text-gray-600">Mark unavailable (All day)</span>
                 </div>
               </div>
-            </div>
+            </div>{/* end scrollable content */}
 
-            <div className="flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
+            {/* Sticky footer */}
+            <div className="shrink-0 flex items-center justify-end gap-3 border-t border-gray-100 px-6 py-4">
               <button onClick={() => setShowModal(false)} className="btn-secondary">Close</button>
               <button onClick={handleSave} disabled={!selectedDate || saving} className="btn-primary">
                 {saving ? 'Saving...' : 'Save override'}

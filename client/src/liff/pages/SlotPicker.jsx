@@ -55,7 +55,7 @@ function CalendarGrid({ selectedDate, onSelectDate }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-7 px-3 pb-4">
+      <div className="grid grid-cols-7 gap-1 px-3 pb-4">
         {days.map(day => {
           const isPast     = isBefore(day, today);
           const isOutside  = !isSameMonth(day, viewMonth);
@@ -63,26 +63,28 @@ function CalendarGrid({ selectedDate, onSelectDate }) {
           const isToday    = isSameDay(day, today);
           const disabled   = isPast || isOutside;
 
+          if (isOutside) return <div key={day.toISOString()} />;
+
           return (
             <button
               key={day.toISOString()}
               disabled={disabled}
               onClick={() => !disabled && onSelectDate(day)}
               className={[
-                'mx-auto flex h-9 w-9 items-center justify-center rounded-full text-sm transition',
+                'mx-auto flex h-10 w-10 items-center justify-center rounded-xl text-sm font-medium transition',
                 isSelected
                   ? 'bg-gray-900 font-semibold text-white'
                   : '',
                 !isSelected && isToday
-                  ? 'font-semibold text-gray-900 ring-2 ring-gray-900'
+                  ? 'bg-gray-100 font-semibold text-gray-900 ring-2 ring-inset ring-gray-900'
                   : '',
                 !isSelected && !isToday && !disabled
-                  ? 'font-medium text-gray-800 ring-1 ring-gray-300 hover:bg-gray-900 hover:text-white hover:ring-gray-900'
+                  ? 'bg-gray-100 text-gray-700 hover:bg-gray-900 hover:text-white'
                   : '',
                 disabled
-                  ? 'cursor-not-allowed text-gray-300'
+                  ? 'cursor-not-allowed text-gray-200'
                   : '',
-              ].join(' ')}
+              ].filter(Boolean).join(' ')}
             >
               {format(day, 'd')}
             </button>

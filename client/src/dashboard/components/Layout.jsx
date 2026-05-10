@@ -94,19 +94,19 @@ export default function Layout() {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
+      <div className="min-w-0 flex-1">
         {/* Mobile header */}
         <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3 md:hidden">
           <p className="font-semibold text-gray-900">{trainerName || 'Trainer'}</p>
           <button onClick={handleLogout} className="text-sm text-red-500">Logout</button>
         </header>
 
-        <main className="flex-1 p-5 md:p-8">
+        <main className="p-5 pb-24 md:p-8 md:pb-8">
           <Outlet />
         </main>
 
         {/* Mobile bottom nav */}
-        <nav className="flex border-t border-gray-200 bg-white md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-gray-200 bg-white md:hidden">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
