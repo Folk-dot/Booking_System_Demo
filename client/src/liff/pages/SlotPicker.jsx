@@ -74,13 +74,13 @@ function CalendarGrid({ selectedDate, onSelectDate }) {
                   ? 'bg-gray-900 font-semibold text-white'
                   : '',
                 !isSelected && isToday
-                  ? 'font-semibold text-gray-900 ring-1 ring-inset ring-gray-900'
+                  ? 'font-semibold text-gray-900 ring-2 ring-gray-900'
                   : '',
                 !isSelected && !isToday && !disabled
-                  ? 'text-gray-700 hover:bg-gray-100'
+                  ? 'font-medium text-gray-800 ring-1 ring-gray-300 hover:bg-gray-900 hover:text-white hover:ring-gray-900'
                   : '',
                 disabled
-                  ? 'cursor-default text-gray-200'
+                  ? 'cursor-not-allowed text-gray-300'
                   : '',
               ].join(' ')}
             >

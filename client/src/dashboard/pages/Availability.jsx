@@ -64,7 +64,7 @@ function IconBtn({ onClick, disabled, title, danger, children }) {
 
 // ── Calendar for override modal ───────────────────────────────
 
-function OverrideCalendarPicker({ selectedDate, onSelectDate, byDay = {} }) {
+function OverrideCalendarPicker({ selectedDate, onSelectDate, overridesByDate = {} }) {
   const [viewMonth, setViewMonth] = useState(startOfMonth(new Date()));
   const today = startOfDay(new Date());
 
@@ -102,10 +102,11 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate, byDay = {} }) {
 
       <div className="grid grid-cols-7">
         {days.map(day => {
-          const isOutside   = !isSameMonth(day, viewMonth);
-          const isSelected  = selectedDate && isSameDay(day, selectedDate);
-          const isToday     = isSameDay(day, today);
-          const isAvailable = (byDay[day.getDay()] ?? []).length > 0;
+          const isOutside    = !isSameMonth(day, viewMonth);
+          const isSelected   = selectedDate && isSameDay(day, selectedDate);
+          const isToday      = isSameDay(day, today);
+          const dateStr      = format(day, 'yyyy-MM-dd');
+          const hasOverride  = !!overridesByDate[dateStr];
 
           if (isOutside) return <div key={day.toISOString()} />;
 
@@ -121,8 +122,8 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate, byDay = {} }) {
               ].filter(Boolean).join(' ')}
             >
               <span className="leading-none">{format(day, 'd')}</span>
-              {isAvailable && !isSelected && (
-                <span className="mt-0.5 h-1 w-1 rounded-full bg-emerald-400" />
+              {hasOverride && !isSelected && (
+                <span className="mt-0.5 h-1 w-1 rounded-full bg-gray-400" />
               )}
             </button>
           );
@@ -259,10 +260,8 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
 
 // ── Override Section ──────────────────────────────────────────
 
-function OverrideSection({ overrides, schedules, trainerId, tenantId, onRefresh }) {
-  const byDay = Object.fromEntries(
-    Array.from({ length: 7 }, (_, i) => [i, schedules.filter(s => s.day_of_week === i)])
-  );
+function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
+  const overridesByDate = Object.fromEntries(overrides.map(o => [o.date, o]));
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [isDayOff, setIsDayOff]         = useState(false);
@@ -275,6 +274,22 @@ function OverrideSection({ overrides, schedules, trainerId, tenantId, onRefresh 
     setIsDayOff(false);
     setWindows([{ start_time: '09:00', end_time: '17:00' }]);
     setShowModal(true);
+  }
+
+  function handleDateSelect(day) {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const existing = overridesByDate[dateStr];
+    setSelectedDate(day);
+    if (existing) {
+      setIsDayOff(existing.is_day_off);
+      setWindows([{
+        start_time: existing.start_time?.slice(0, 5) || '09:00',
+        end_time:   existing.end_time?.slice(0, 5)   || '17:00',
+      }]);
+    } else {
+      setIsDayOff(false);
+      setWindows([{ start_time: '09:00', end_time: '17:00' }]);
+    }
   }
 
   async function handleSave() {
@@ -362,7 +377,7 @@ function OverrideSection({ overrides, schedules, trainerId, tenantId, onRefresh 
               {/* Top / Left: calendar picker */}
               <div className="flex-1 p-6">
                 <h3 className="mb-5 text-base font-semibold text-gray-900">Select the dates to override</h3>
-                <OverrideCalendarPicker selectedDate={selectedDate} onSelectDate={setSelectedDate} byDay={byDay} />
+                <OverrideCalendarPicker selectedDate={selectedDate} onSelectDate={handleDateSelect} overridesByDate={overridesByDate} />
               </div>
 
               {/* Bottom / Right: hours config */}
@@ -476,7 +491,6 @@ export default function Availability() {
           />
           <OverrideSection
             overrides={overrides}
-            schedules={schedules}
             trainerId={profile.id}
             tenantId={profile.tenant_id}
             onRefresh={load}
