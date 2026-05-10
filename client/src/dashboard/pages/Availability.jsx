@@ -469,7 +469,7 @@ export default function Availability() {
   if (loading) return <LoadingSpinner text="Loading..." />;
 
   return (
-    <div className="space-y-5">
+    <div className="max-w-lg space-y-5">
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Availability</h1>
         <p className="mt-1 text-sm text-gray-500">
