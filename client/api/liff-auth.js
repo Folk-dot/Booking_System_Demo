@@ -44,8 +44,9 @@ export default async function handler(req, res) {
     const profile = await profileRes.json();
     const { userId: lineUid, displayName, pictureUrl } = profile;
 
-    // 2. Synthetic email — deterministic, never shown to the user
-    const email = `line_${lineUid}@liff.internal`;
+    // 2. Synthetic email — deterministic, scoped per tenant so the same LINE user
+    //    can be a client in multiple tenants independently.
+    const email = `line_${lineUid}_${tenantId}@liff.internal`;
 
     // 3. Create Supabase user if they don't exist yet
     //    The DB trigger (handle_new_user) will create the clients row automatically.
