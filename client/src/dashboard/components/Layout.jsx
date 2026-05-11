@@ -101,7 +101,7 @@ export default function Layout() {
           <button onClick={handleLogout} className="text-sm text-red-500">Logout</button>
         </header>
 
-        <main className="p-5 pb-24 md:p-8 md:pb-8">
+        <main className="p-5 pb-24 md:mx-auto md:w-full md:max-w-4xl md:p-8 md:pb-8">
           <Outlet />
         </main>
 

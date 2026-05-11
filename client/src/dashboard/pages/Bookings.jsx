@@ -6,12 +6,62 @@ import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 import RescheduleModal from '../components/RescheduleModal.jsx';
 
+function CancelModal({ booking, onClose, onConfirm, cancelling }) {
+  const trainee   = booking.trainees;
+  const eventType = booking.event_types;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-4 flex items-start justify-between">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Cancel booking</h2>
+            <p className="mt-0.5 text-xs text-gray-400">This action cannot be undone.</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="mb-5 rounded-xl border border-gray-200 p-4 text-sm">
+          <p className="font-semibold text-gray-900">{trainee?.display_name || 'LINE User'}</p>
+          <p className="mt-0.5 text-gray-500">{formatDateRange(booking.starts_at, booking.ends_at)}</p>
+          {eventType && (
+            <span className="mt-1.5 inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+              {eventType.name}
+            </span>
+          )}
+        </div>
+
+        <p className="mb-5 text-sm text-gray-500">
+          The trainee will be notified via LINE.
+        </p>
+
+        <div className="flex gap-2">
+          <button onClick={onClose} className="btn-secondary flex-1">
+            Keep booking
+          </button>
+          <button onClick={onConfirm} disabled={cancelling} className="btn-danger flex-1">
+            {cancelling ? 'Cancelling...' : 'Yes, cancel'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Bookings() {
-  const [bookings, setBookings]       = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState('');
-  const [cancellingId, setCancellingId] = useState(null);
-  const [reschedule, setReschedule]   = useState(null);
+  const [bookings, setBookings]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState('');
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelling, setCancelling]     = useState(false);
+  const [reschedule, setReschedule]     = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -27,27 +77,29 @@ export default function Bookings() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function handleCancel(bookingId, traineeLineUid, traineetenantId, trainerName, startsAt) {
-    if (!confirm('Cancel this booking? The trainee will be notified via LINE.')) return;
-    setCancellingId(bookingId);
+  async function handleConfirmCancel() {
+    if (!cancelTarget) return;
+    const { id, traineeLineUid, tenantId, trainerName, startsAt } = cancelTarget;
+    setCancelling(true);
     try {
-      await cancelBooking(bookingId);
-      setBookings((b) => b.filter((bk) => bk.id !== bookingId));
+      await cancelBooking(id);
+      setBookings((b) => b.filter((bk) => bk.id !== id));
+      setCancelTarget(null);
       if (traineeLineUid) {
         const { data: { session } } = await supabase.auth.getSession();
         fetch('/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
           body: JSON.stringify({
-            type: 'booking_cancelled', tenantId: traineetenantId,
+            type: 'booking_cancelled', tenantId,
             lineUid: traineeLineUid, trainerName, startsAt, cancelledBy: 'trainer',
           }),
         }).catch(() => {});
       }
     } catch (err) {
-      alert(err.message || 'Failed to cancel');
+      setError(err.message || 'Failed to cancel');
     } finally {
-      setCancellingId(null);
+      setCancelling(false);
     }
   }
 
@@ -105,11 +157,17 @@ export default function Bookings() {
                     Reschedule
                   </button>
                   <button
-                    onClick={() => handleCancel(b.id, trainee?.line_uid, b.tenant_id, b.trainers?.name, b.starts_at)}
-                    disabled={cancellingId === b.id}
+                    onClick={() => setCancelTarget({
+                      id: b.id,
+                      traineeLineUid: trainee?.line_uid,
+                      tenantId: b.tenant_id,
+                      trainerName: b.trainers?.name,
+                      startsAt: b.starts_at,
+                      booking: b,
+                    })}
                     className="btn-danger px-3 py-2 text-xs"
                   >
-                    {cancellingId === b.id ? '...' : 'Cancel'}
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -123,6 +181,15 @@ export default function Bookings() {
           booking={reschedule}
           onClose={() => setReschedule(null)}
           onSuccess={() => { setReschedule(null); load(); }}
+        />
+      )}
+
+      {cancelTarget && (
+        <CancelModal
+          booking={cancelTarget.booking}
+          onClose={() => setCancelTarget(null)}
+          onConfirm={handleConfirmCancel}
+          cancelling={cancelling}
         />
       )}
     </div>
