@@ -120,6 +120,35 @@ export default async function handler(req, res) {
         type: 'text',
         text: `❌ Booking cancelled by ${by}\n\nSpecialist: ${specialistName}\nDate & Time: ${startStr}\n\nFor any questions, please contact your specialist directly.`,
       }];
+    } else if (type === 'booking_rescheduled') {
+      messages = [{
+        type:     'flex',
+        altText:  `📅 Booking rescheduled — ${specialistName}`,
+        contents: {
+          type:   'bubble',
+          header: {
+            type: 'box', layout: 'vertical', backgroundColor: '#2563EB',
+            contents: [{ type: 'text', text: '📅 Booking rescheduled', color: '#FFFFFF', size: 'lg', weight: 'bold' }],
+          },
+          body: {
+            type: 'box', layout: 'vertical', spacing: 'md',
+            contents: [
+              { type: 'box', layout: 'horizontal', contents: [
+                { type: 'text', text: 'Specialist',    color: '#666666', size: 'sm', flex: 2 },
+                { type: 'text', text: specialistName,  weight: 'bold',   size: 'sm', flex: 3 },
+              ]},
+              { type: 'box', layout: 'horizontal', contents: [
+                { type: 'text', text: 'New Date & Time', color: '#666666', size: 'sm', flex: 2 },
+                { type: 'text', text: `${startStr}${endStr ? ' – ' + endStr : ''}`, size: 'sm', flex: 3, wrap: true },
+              ]},
+            ],
+          },
+          footer: {
+            type: 'box', layout: 'vertical',
+            contents: [{ type: 'text', text: 'To cancel, please contact your specialist directly.', size: 'xs', color: '#AAAAAA', wrap: true }],
+          },
+        },
+      }];
     } else {
       return res.status(400).json({ error: `Unknown notification type: ${type}` });
     }

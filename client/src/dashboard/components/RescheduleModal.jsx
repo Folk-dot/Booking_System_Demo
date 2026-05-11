@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase.js';
 import {
   format, startOfDay, startOfMonth, endOfMonth,
   startOfWeek, endOfWeek, eachDayOfInterval,
@@ -111,6 +112,22 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
     setError('');
     try {
       await rescheduleBooking(booking.id, selectedSlot.slot_start, selectedSlot.slot_end);
+      const client = booking.clients;
+      if (client?.line_uid) {
+        const { data: { session } } = await supabase.auth.getSession();
+        fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+          body: JSON.stringify({
+            type:           'booking_rescheduled',
+            tenantId:       booking.tenant_id,
+            lineUid:        client.line_uid,
+            specialistName: booking.specialists?.name,
+            startsAt:       selectedSlot.slot_start,
+            endsAt:         selectedSlot.slot_end,
+          }),
+        }).catch(() => {});
+      }
       onSuccess();
     } catch (err) {
       setError(err.message || 'Failed to reschedule');

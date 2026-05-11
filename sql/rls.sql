@@ -132,6 +132,15 @@ CREATE POLICY "client creates bookings"
     AND tenant_id = get_my_tenant_id()
   );
 
+-- Specialists can create bookings assigned to themselves (needed for reschedule flow)
+CREATE POLICY "specialist creates bookings"
+  ON bookings FOR INSERT
+  WITH CHECK (
+    is_specialist()
+    AND specialist_id = auth.uid()
+    AND tenant_id = get_my_tenant_id()
+  );
+
 -- Clients can cancel their own confirmed bookings
 CREATE POLICY "client cancels own bookings"
   ON bookings FOR UPDATE
