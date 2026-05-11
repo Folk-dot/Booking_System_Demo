@@ -49,11 +49,10 @@ export async function liffSignIn(liffAccessToken) {
 // ── Specialists ───────────────────────────────────────────────
 
 export async function listSpecialists() {
-  const client = await getMyClientProfile();
   const { data, error } = await supabase
     .from('specialists')
     .select('id, name, bio, avatar_url, specialty')
-    .eq('tenant_id', client.tenant_id)
+    .eq('tenant_id', import.meta.env.VITE_TENANT_ID)
     .eq('is_active', true)
     .order('name');
   if (error) throw error;
@@ -73,11 +72,10 @@ export async function getSpecialist(specialistId) {
 // ── Event types ──────────────────────────────────────────────
 
 export async function getEventTypesForSpecialist(specialistId) {
-  const client = await getMyClientProfile();
   const { data, error } = await supabase
     .from('event_types')
     .select('id, name, description, duration_minutes, color')
-    .eq('tenant_id', client.tenant_id)
+    .eq('tenant_id', import.meta.env.VITE_TENANT_ID)
     .or(`specialist_id.is.null,specialist_id.eq.${specialistId}`)
     .eq('is_active', true)
     .order('duration_minutes');
