@@ -1,6 +1,6 @@
 // Vercel Serverless Function
 // POST /api/notify
-// Sends a LINE push message to a trainee.
+// Sends a LINE push message to a client.
 // Secured by verifying the caller's Supabase JWT — only authenticated
 // users in the same tenant can trigger a notification.
 //
@@ -54,9 +54,9 @@ export default async function handler(req, res) {
   const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(jwt);
   if (authError || !user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { type, tenantId, lineUid, trainerName, startsAt, endsAt, bookingId } = req.body;
+  const { type, tenantId, lineUid, specialistName, startsAt, endsAt, bookingId } = req.body;
 
-  if (!type || !tenantId || !lineUid || !trainerName || !startsAt) {
+  if (!type || !tenantId || !lineUid || !specialistName || !startsAt) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -84,7 +84,7 @@ export default async function handler(req, res) {
     if (type === 'booking_confirmed') {
       messages = [{
         type:     'flex',
-        altText:  `✅ Booking confirmed — ${trainerName}`,
+        altText:  `✅ Booking confirmed — ${specialistName}`,
         contents: {
           type:   'bubble',
           header: {
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
             contents: [
               { type: 'box', layout: 'horizontal', contents: [
                 { type: 'text', text: 'Specialist', color: '#666666', size: 'sm', flex: 2 },
-                { type: 'text', text: trainerName, weight: 'bold', size: 'sm', flex: 3 },
+                { type: 'text', text: specialistName, weight: 'bold', size: 'sm', flex: 3 },
               ]},
               { type: 'box', layout: 'horizontal', contents: [
                 { type: 'text', text: 'Date & Time', color: '#666666', size: 'sm', flex: 2 },
@@ -115,10 +115,10 @@ export default async function handler(req, res) {
         },
       }];
     } else if (type === 'booking_cancelled') {
-      const by = req.body.cancelledBy === 'trainer' ? 'the specialist' : 'you';
+      const by = req.body.cancelledBy === 'specialist' ? 'the specialist' : 'you';
       messages = [{
         type: 'text',
-        text: `❌ Booking cancelled by ${by}\n\nSpecialist: ${trainerName}\nDate & Time: ${startStr}\n\nFor any questions, please contact your specialist directly.`,
+        text: `❌ Booking cancelled by ${by}\n\nSpecialist: ${specialistName}\nDate & Time: ${startStr}\n\nFor any questions, please contact your specialist directly.`,
       }];
     } else {
       return res.status(400).json({ error: `Unknown notification type: ${type}` });

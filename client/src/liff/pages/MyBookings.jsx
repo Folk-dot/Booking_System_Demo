@@ -49,22 +49,22 @@ export default function MyBookings() {
         ) : (
           <div className="space-y-2">
             {bookings.map(b => {
-              const trainer   = b.trainers;
+              const specialist = b.specialists;
               const eventType = b.event_types;
               const s = STATUS[b.status] ?? STATUS.confirmed;
               return (
                 <div key={b.id} className="rounded-xl border border-gray-200 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
-                      {trainer?.avatar_url ? (
+                      {specialist?.avatar_url ? (
                         <img src={trainer.avatar_url} alt={trainer.name} className="h-10 w-10 shrink-0 rounded-full object-cover" />
                       ) : (
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
-                          {trainer?.name?.charAt(0) ?? '?'}
+                          {specialist?.name?.charAt(0) ?? '?'}
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900">{trainer?.name}</p>
+                        <p className="font-semibold text-gray-900">{specialist?.name}</p>
                         {eventType && (
                           <p className="mt-0.5 text-xs text-gray-500">{eventType.name} · {eventType.duration_minutes} min</p>
                         )}

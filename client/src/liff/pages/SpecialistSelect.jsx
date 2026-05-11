@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { listTrainers } from '@/api/liffApi.js';
+import { listSpecialists } from '@/api/liffApi.js';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
-export default function TrainerSelect() {
-  const [trainers, setTrainers] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState('');
+export default function SpecialistSelect() {
+  const [specialists, setSpecialists] = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
-    listTrainers()
-      .then(setTrainers)
-      .catch(() => setError('Failed to Load'))
+    listSpecialists()
+      .then(setSpecialists)
+      .catch(() => setError('Failed to load'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -30,30 +30,30 @@ export default function TrainerSelect() {
         <ErrorMessage message={error} />
 
         <div className="space-y-2">
-          {trainers.map(trainer => (
+          {specialists.map(specialist => (
             <button
-              key={trainer.id}
-              onClick={() => navigate(`/slots/${trainer.id}`, { state: { trainer } })}
+              key={specialist.id}
+              onClick={() => navigate(`/slots/${specialist.id}`, { state: { specialist } })}
               className="flex w-full items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-gray-400 hover:bg-gray-50 active:scale-[0.99]"
             >
-              {trainer.avatar_url ? (
+              {specialist.avatar_url ? (
                 <img
-                  src={trainer.avatar_url}
-                  alt={trainer.name}
+                  src={specialist.avatar_url}
+                  alt={specialist.name}
                   className="h-12 w-12 rounded-full object-cover"
                 />
               ) : (
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gray-900 text-base font-semibold text-white">
-                  {trainer.name.charAt(0)}
+                  {specialist.name.charAt(0)}
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-gray-900">{trainer.name}</p>
-                {trainer.specialty && (
-                  <p className="mt-0.5 text-xs text-gray-500">{trainer.specialty}</p>
+                <p className="font-semibold text-gray-900">{specialist.name}</p>
+                {specialist.specialty && (
+                  <p className="mt-0.5 text-xs text-gray-500">{specialist.specialty}</p>
                 )}
-                {trainer.bio && (
-                  <p className="mt-1 line-clamp-1 text-xs text-gray-400">{trainer.bio}</p>
+                {specialist.bio && (
+                  <p className="mt-1 line-clamp-1 text-xs text-gray-400">{specialist.bio}</p>
                 )}
               </div>
               <svg className="h-4 w-4 shrink-0 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">

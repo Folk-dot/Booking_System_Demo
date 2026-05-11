@@ -5,7 +5,7 @@ import {
   startOfWeek, endOfWeek, eachDayOfInterval,
   isSameMonth, isSameDay, isBefore, addMonths, subMonths,
 } from 'date-fns';
-import { getEventTypesForTrainer, getAvailableSlots } from '@/api/liffApi.js';
+import { getEventTypesForSpecialist, getAvailableSlots } from '@/api/liffApi.js';
 import LoadingSpinner from '@/shared/components/LoadingSpinner.jsx';
 import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 
@@ -96,10 +96,10 @@ function CalendarGrid({ selectedDate, onSelectDate }) {
 }
 
 export default function SlotPicker() {
-  const { trainerId } = useParams();
-  const { state }     = useLocation();
-  const navigate      = useNavigate();
-  const trainer       = state?.trainer;
+  const { specialistId } = useParams();
+  const { state }        = useLocation();
+  const navigate         = useNavigate();
+  const specialist       = state?.specialist;
 
   const [eventTypes, setEventTypes]     = useState([]);
   const [selectedType, setSelectedType] = useState(null);
@@ -111,14 +111,14 @@ export default function SlotPicker() {
   const [use24h, setUse24h]             = useState(false);
 
   useEffect(() => {
-    getEventTypesForTrainer(trainerId)
+    getEventTypesForSpecialist(specialistId)
       .then(data => {
         setEventTypes(data);
         if (data.length === 1) setSelectedType(data[0]);
       })
       .catch(() => setError('Failed to Load'))
       .finally(() => setLoadingTypes(false));
-  }, [trainerId]);
+  }, [specialistId]);
 
   useEffect(() => {
     if (!selectedType) return;
@@ -126,14 +126,14 @@ export default function SlotPicker() {
     setSlots([]);
     setError('');
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    getAvailableSlots(trainerId, selectedType.id, dateStr)
+    getAvailableSlots(specialistId, selectedType.id, dateStr)
       .then(setSlots)
       .catch(() => setError('Failed to Load'))
       .finally(() => setLoadingSlots(false));
-  }, [trainerId, selectedType, selectedDate]);
+  }, [specialistId, selectedType, selectedDate]);
 
   function handleSelectSlot(slot) {
-    navigate('/confirm', { state: { slot, trainer, eventType: selectedType } });
+    navigate('/confirm', { state: { slot, specialist, eventType: selectedType } });
   }
 
   function displayTime(iso) {
@@ -159,15 +159,15 @@ export default function SlotPicker() {
         </button>
 
         <div className="flex items-center gap-3">
-          {trainer?.avatar_url ? (
+          {specialist?.avatar_url ? (
             <img src={trainer.avatar_url} alt={trainer.name} className="h-9 w-9 rounded-full object-cover" />
           ) : (
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
-              {trainer?.name?.charAt(0) ?? '?'}
+              {specialist?.name?.charAt(0) ?? '?'}
             </div>
           )}
           <div>
-            <p className="text-xs text-gray-400">{trainer?.name}</p>
+            <p className="text-xs text-gray-400">{specialist?.name}</p>
             <h1 className="text-lg font-bold leading-tight text-gray-900">
               {selectedType?.name ?? 'Select a service'}
             </h1>

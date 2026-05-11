@@ -99,11 +99,11 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
     setSelectedSlot(null);
     setSlots([]);
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    getAvailableSlots(booking.trainer_id, booking.event_type_id, dateStr)
+    getAvailableSlots(booking.specialist_id, booking.event_type_id, dateStr)
       .then(setSlots)
       .catch(() => setError('Failed to load available slots'))
       .finally(() => setLoadingSlots(false));
-  }, [selectedDate, booking.trainer_id, booking.event_type_id]);
+  }, [selectedDate, booking.specialist_id, booking.event_type_id]);
 
   async function handleReschedule() {
     if (!selectedSlot) return;
@@ -123,7 +123,7 @@ export default function RescheduleModal({ booking, onClose, onSuccess }) {
     return format(new Date(iso), use24h ? 'HH:mm' : 'h:mmaaa');
   }
 
-  const trainee = booking.trainees;
+  const trainee = booking.clients;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center">

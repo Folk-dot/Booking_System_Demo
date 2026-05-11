@@ -138,7 +138,7 @@ function OverrideCalendarPicker({ selectedDate, onSelectDate, overridesByDate = 
 
 // ── Weekly Schedule Editor ────────────────────────────────────
 
-function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
+function ScheduleEditor({ schedules, specialistId, tenantId, onRefresh }) {
   const [busy, setBusy] = useState(null);
 
   const byDay = Object.fromEntries(
@@ -151,7 +151,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
       if (isOn) {
         await Promise.all(byDay[dow].map(s => deleteSchedule(s.id)));
       } else {
-        await upsertSchedule({ trainer_id: trainerId, tenant_id: tenantId, day_of_week: dow, start_time: '09:00', end_time: '17:00' });
+        await upsertSchedule({ specialist_id: specialistId, tenant_id: tenantId, day_of_week: dow, start_time: '09:00', end_time: '17:00' });
       }
       onRefresh();
     } catch (err) { alert(err.message); }
@@ -161,7 +161,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
   async function handleAddWindow(dow) {
     setBusy(`add-${dow}`);
     try {
-      await upsertSchedule({ trainer_id: trainerId, tenant_id: tenantId, day_of_week: dow, start_time: '09:00', end_time: '17:00' });
+      await upsertSchedule({ specialist_id: specialistId, tenant_id: tenantId, day_of_week: dow, start_time: '09:00', end_time: '17:00' });
       onRefresh();
     } catch (err) { alert(err.message); }
     finally { setBusy(null); }
@@ -180,7 +180,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
     try {
       await upsertSchedule({
         id:          s.id,
-        trainer_id:  trainerId,
+        specialist_id:  specialistId,
         tenant_id:   tenantId,
         day_of_week: s.day_of_week,
         start_time:  field === 'start_time' ? value : s.start_time,
@@ -262,7 +262,7 @@ function ScheduleEditor({ schedules, trainerId, tenantId, onRefresh }) {
 
 // ── Override Section ──────────────────────────────────────────
 
-function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
+function OverrideSection({ overrides, specialistId, tenantId, onRefresh }) {
   const overridesByDate = Object.fromEntries(overrides.map(o => [o.date, o]));
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -299,7 +299,7 @@ function OverrideSection({ overrides, trainerId, tenantId, onRefresh }) {
     setSaving(true);
     try {
       await upsertOverride({
-        trainer_id: trainerId,
+        specialist_id: specialistId,
         tenant_id:  tenantId,
         date:       format(selectedDate, 'yyyy-MM-dd'),
         is_day_off: isDayOff,
@@ -492,13 +492,13 @@ export default function Availability() {
         <>
           <ScheduleEditor
             schedules={schedules}
-            trainerId={profile.id}
+            specialistId={profile.id}
             tenantId={profile.tenant_id}
             onRefresh={load}
           />
           <OverrideSection
             overrides={overrides}
-            trainerId={profile.id}
+            specialistId={profile.id}
             tenantId={profile.tenant_id}
             onRefresh={load}
           />

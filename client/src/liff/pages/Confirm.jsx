@@ -7,14 +7,14 @@ import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 export default function Confirm() {
   const { state } = useLocation();
   const navigate  = useNavigate();
-  const { slot, trainer, eventType } = state || {};
+  const { slot, specialist, eventType } = state || {};
 
   const [notes, setNotes]     = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState(false);
 
-  if (!slot || !trainer || !eventType) {
+  if (!slot || !specialist || !eventType) {
     navigate('/');
     return null;
   }
@@ -24,7 +24,7 @@ export default function Confirm() {
     setError('');
     try {
       await createBooking({
-        trainerId:   trainer.id,
+        specialistId:   specialist.id,
         eventTypeId: eventType.id,
         startsAt:    slot.slot_start,
         endsAt:      slot.slot_end,
@@ -52,7 +52,7 @@ export default function Confirm() {
           </svg>
         </div>
         <h2 className="mb-1 text-xl font-bold text-gray-900">Booking confirmed</h2>
-        <p className="text-sm text-gray-500">{trainer.name} · {eventType.name}</p>
+        <p className="text-sm text-gray-500">{specialist.name} · {eventType.name}</p>
         <p className="mt-1 text-sm text-gray-400">{formatDateRange(slot.slot_start, slot.slot_end)}</p>
         <p className="mt-4 text-xs text-gray-300">You'll receive a confirmation via LINE</p>
         <div className="mt-8 w-full space-y-2">
@@ -79,16 +79,16 @@ export default function Confirm() {
         {/* Booking summary */}
         <div className="rounded-xl border border-gray-200 p-4">
           <div className="flex items-center gap-3">
-            {trainer.avatar_url ? (
-              <img src={trainer.avatar_url} alt={trainer.name} className="h-10 w-10 rounded-full object-cover" />
+            {specialist.avatar_url ? (
+              <img src={specialist.avatar_url} alt={specialist.name} className="h-10 w-10 rounded-full object-cover" />
             ) : (
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-semibold text-white">
-                {trainer.name.charAt(0)}
+                {specialist.name.charAt(0)}
               </div>
             )}
             <div>
-              <p className="font-semibold text-gray-900">{trainer.name}</p>
-              {trainer.specialty && <p className="text-xs text-gray-400">{trainer.specialty}</p>}
+              <p className="font-semibold text-gray-900">{specialist.name}</p>
+              {specialist.specialty && <p className="text-xs text-gray-400">{specialist.specialty}</p>}
             </div>
           </div>
 

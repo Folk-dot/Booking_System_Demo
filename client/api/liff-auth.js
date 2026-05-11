@@ -48,12 +48,12 @@ export default async function handler(req, res) {
     const email = `line_${lineUid}@liff.internal`;
 
     // 3. Create Supabase user if they don't exist yet
-    //    The DB trigger (handle_new_user) will create the trainees row automatically.
+    //    The DB trigger (handle_new_user) will create the clients row automatically.
     const { error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       email_confirm: true,
       user_metadata: {
-        role:         'trainee',
+        role:         'client',
         tenant_id:    tenantId,
         line_uid:     lineUid,
         display_name: displayName,

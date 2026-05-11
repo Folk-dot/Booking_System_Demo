@@ -7,7 +7,7 @@ import ErrorMessage from '@/shared/components/ErrorMessage.jsx';
 import RescheduleModal from '../components/RescheduleModal.jsx';
 
 function CancelModal({ booking, onClose, onConfirm, cancelling }) {
-  const trainee   = booking.trainees;
+  const trainee   = booking.clients;
   const eventType = booking.event_types;
 
   return (
@@ -79,20 +79,20 @@ export default function Bookings() {
 
   async function handleConfirmCancel() {
     if (!cancelTarget) return;
-    const { id, traineeLineUid, tenantId, trainerName, startsAt } = cancelTarget;
+    const { id, clientLineUid, tenantId, specialistName, startsAt } = cancelTarget;
     setCancelling(true);
     try {
       await cancelBooking(id);
       setBookings((b) => b.filter((bk) => bk.id !== id));
       setCancelTarget(null);
-      if (traineeLineUid) {
+      if (clientLineUid) {
         const { data: { session } } = await supabase.auth.getSession();
         fetch('/api/notify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
           body: JSON.stringify({
             type: 'booking_cancelled', tenantId,
-            lineUid: traineeLineUid, trainerName, startsAt, cancelledBy: 'trainer',
+            lineUid: clientLineUid, specialistName, startsAt, cancelledBy: 'specialist',
           }),
         }).catch(() => {});
       }
@@ -127,7 +127,7 @@ export default function Bookings() {
       ) : (
         <div className="space-y-2">
           {bookings.map((b) => {
-            const trainee   = b.trainees;
+            const trainee   = b.clients;
             const eventType = b.event_types;
             return (
               <div key={b.id} className="flex flex-col gap-4 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -159,9 +159,9 @@ export default function Bookings() {
                   <button
                     onClick={() => setCancelTarget({
                       id: b.id,
-                      traineeLineUid: trainee?.line_uid,
+                      clientLineUid: trainee?.line_uid,
                       tenantId: b.tenant_id,
-                      trainerName: b.trainers?.name,
+                      specialistName: b.specialists?.name,
                       startsAt: b.starts_at,
                       booking: b,
                     })}

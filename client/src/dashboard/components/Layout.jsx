@@ -37,7 +37,7 @@ const NAV = [
 
 export default function Layout() {
   const navigate = useNavigate();
-  const [trainerName, setTrainerName] = useState('');
+  const [specialistName, setTrainerName] = useState('');
   const [tenantName, setTenantName]   = useState('');
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function Layout() {
       <aside className="hidden w-56 flex-col border-r border-gray-200 bg-white md:flex">
         <div className="border-b border-gray-100 px-5 py-5">
           <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">{tenantName}</p>
-          <p className="mt-1 truncate font-semibold text-gray-900">{trainerName || 'Trainer'}</p>
+          <p className="mt-1 truncate font-semibold text-gray-900">{specialistName || 'Specialist'}</p>
         </div>
 
         <nav className="flex-1 space-y-0.5 px-3 py-4">
@@ -97,7 +97,7 @@ export default function Layout() {
       <div className="min-w-0 flex-1">
         {/* Mobile header */}
         <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3 md:hidden">
-          <p className="font-semibold text-gray-900">{trainerName || 'Trainer'}</p>
+          <p className="font-semibold text-gray-900">{specialistName || 'Specialist'}</p>
           <button onClick={handleLogout} className="text-sm text-red-500">Logout</button>
         </header>
 

@@ -19,12 +19,12 @@ export function onAuthChange(callback) {
   return supabase.auth.onAuthStateChange((_event, session) => callback(session));
 }
 
-// ── Trainer profile ──────────────────────────────────────────
+// ── Specialist profile ────────────────────────────────────────
 
 export async function getMyProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
-    .from('trainers')
+    .from('specialists')
     .select('*, tenants ( name )')
     .eq('id', user.id)
     .single();
@@ -35,7 +35,7 @@ export async function getMyProfile() {
 export async function updateMyProfile(updates) {
   const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await supabase
-    .from('trainers')
+    .from('specialists')
     .update(updates)
     .eq('id', user.id)
     .select()
@@ -48,12 +48,12 @@ export async function updateMyProfile(updates) {
 
 export async function getEventTypes() {
   const { data: { user } } = await supabase.auth.getUser();
-  const trainer = await getMyProfile();
+  const specialist = await getMyProfile();
   const { data, error } = await supabase
     .from('event_types')
     .select('*')
-    .eq('tenant_id', trainer.tenant_id)
-    .or(`trainer_id.is.null,trainer_id.eq.${user.id}`)
+    .eq('tenant_id', specialist.tenant_id)
+    .or(`specialist_id.is.null,specialist_id.eq.${user.id}`)
     .eq('is_active', true)
     .order('duration_minutes');
   if (error) throw error;
@@ -88,7 +88,7 @@ export async function getMySchedules() {
   const { data, error } = await supabase
     .from('availability_schedules')
     .select('*')
-    .eq('trainer_id', user.id)
+    .eq('specialist_id', user.id)
     .eq('is_active', true)
     .order('day_of_week')
     .order('start_time');
@@ -121,7 +121,7 @@ export async function getMyOverrides(from, to) {
   const { data, error } = await supabase
     .from('availability_overrides')
     .select('*')
-    .eq('trainer_id', user.id)
+    .eq('specialist_id', user.id)
     .gte('date', from)
     .lte('date', to)
     .order('date');
@@ -132,7 +132,7 @@ export async function getMyOverrides(from, to) {
 export async function upsertOverride(override) {
   const { data, error } = await supabase
     .from('availability_overrides')
-    .upsert(override, { onConflict: 'trainer_id,date' })
+    .upsert(override, { onConflict: 'specialist_id,date' })
     .select()
     .single();
   if (error) throw error;
@@ -149,9 +149,9 @@ export async function deleteOverride(id) {
 
 // ── Bookings ─────────────────────────────────────────────────
 
-export async function getAvailableSlots(trainerId, eventTypeId, date) {
+export async function getAvailableSlots(specialistId, eventTypeId, date) {
   const { data, error } = await supabase.rpc('get_available_slots', {
-    p_trainer_id:    trainerId,
+    p_specialist_id: specialistId,
     p_event_type_id: eventTypeId,
     p_date:          date,
   });
@@ -165,12 +165,12 @@ export async function getMyBookings({ from, to } = {}) {
     .from('bookings')
     .select(`
       id, status, notes, confirmed_at, starts_at, ends_at,
-      trainer_id, event_type_id, tenant_id,
-      trainers ( name ),
+      specialist_id, event_type_id, tenant_id,
+      specialists ( name ),
       event_types ( name, duration_minutes, color ),
-      trainees ( id, display_name, picture_url, line_uid )
+      clients ( id, display_name, picture_url, line_uid )
     `)
-    .eq('trainer_id', user.id)
+    .eq('specialist_id', user.id)
     .eq('status', 'confirmed')
     .order('starts_at');
 
@@ -185,7 +185,7 @@ export async function getMyBookings({ from, to } = {}) {
 export async function cancelBooking(bookingId) {
   const { error } = await supabase
     .from('bookings')
-    .update({ status: 'cancelled', cancelled_by: 'trainer' })
+    .update({ status: 'cancelled', cancelled_by: 'specialist' })
     .eq('id', bookingId);
   if (error) throw error;
 }
@@ -193,7 +193,7 @@ export async function cancelBooking(bookingId) {
 export async function rescheduleBooking(bookingId, newStartsAt, newEndsAt) {
   const { data: original, error: fetchErr } = await supabase
     .from('bookings')
-    .select('trainee_id, trainer_id, tenant_id, event_type_id')
+    .select('client_id, specialist_id, tenant_id, event_type_id')
     .eq('id', bookingId)
     .single();
   if (fetchErr) throw fetchErr;
@@ -201,7 +201,7 @@ export async function rescheduleBooking(bookingId, newStartsAt, newEndsAt) {
   // Cancel old
   const { error: cancelErr } = await supabase
     .from('bookings')
-    .update({ status: 'rescheduled', cancelled_by: 'trainer' })
+    .update({ status: 'rescheduled', cancelled_by: 'specialist' })
     .eq('id', bookingId);
   if (cancelErr) throw cancelErr;
 
@@ -210,8 +210,8 @@ export async function rescheduleBooking(bookingId, newStartsAt, newEndsAt) {
     .from('bookings')
     .insert({
       tenant_id:     original.tenant_id,
-      trainer_id:    original.trainer_id,
-      trainee_id:    original.trainee_id,
+      specialist_id: original.specialist_id,
+      client_id:     original.client_id,
       event_type_id: original.event_type_id,
       starts_at:     newStartsAt,
       ends_at:       newEndsAt,
