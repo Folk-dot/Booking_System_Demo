@@ -39,7 +39,7 @@ function CancelModal({ booking, onClose, onConfirm, cancelling }) {
         </div>
 
         <p className="mb-5 text-sm text-gray-500">
-          The trainee will be notified via LINE.
+          The customer will be notified via LINE.
         </p>
 
         <div className="flex gap-2">
