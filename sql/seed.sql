@@ -1,55 +1,115 @@
 -- ============================================================
--- Seed data for development
--- Trainer password: "password123" (bcrypt hash below)
+-- Seed data — Gym demo
+-- Run after schema.sql, rls.sql, functions.sql
+-- Specialists already created in Supabase Auth — inserting directly.
 -- ============================================================
 
--- Tenant
-INSERT INTO tenants (id, name, slug, line_channel_id, line_channel_secret, line_channel_token)
+DO $$
+DECLARE
+  v_tenant_id  UUID := '44834cfa-41c6-44b4-bd42-4b3ab9562d3f';
+  v_spec_1     UUID := 'ea68a15e-07ae-4c44-8c0e-acee26b08f15'; -- somchai@demo.gym
+  v_spec_2     UUID := 'f7ed10b5-ce53-4333-b021-5e08068943ba'; -- nok@demo.gym
+  v_spec_3     UUID := 'ef6649b1-930c-4291-9549-3faa02bebcf5'; -- ariya@gym.demo
+BEGIN
+
+-- ── Tenant ───────────────────────────────────────────────────
+INSERT INTO tenants (id, name, slug, timezone, line_channel_token, line_channel_secret)
 VALUES (
-  'aaaaaaaa-0000-0000-0000-000000000001',
+  v_tenant_id,
   'FitLife Gym',
   'fitlife-gym',
-  'YOUR_LINE_CHANNEL_ID',
-  'YOUR_LINE_CHANNEL_SECRET',
-  'YOUR_LINE_CHANNEL_ACCESS_TOKEN'
-);
+  'Asia/Bangkok',
+  'YOUR_LINE_CHANNEL_ACCESS_TOKEN',
+  'YOUR_LINE_CHANNEL_SECRET'
+)
+ON CONFLICT (id) DO NOTHING;
 
--- Trainers (password: password123)
-INSERT INTO trainers (id, tenant_id, email, password_hash, name, bio, specialty)
+-- ── Specialists ──────────────────────────────────────────────
+INSERT INTO specialists (id, tenant_id, email, name, bio, specialty, is_active)
 VALUES
   (
-    'bbbbbbbb-0000-0000-0000-000000000001',
-    'aaaaaaaa-0000-0000-0000-000000000001',
-    'som@fitlife.com',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    v_spec_1,
+    v_tenant_id,
+    'somchai@demo.gym',
     'Somchai Jaidee',
-    'Personal trainer with 8 years experience in strength and conditioning.',
-    'Strength Training'
+    '8 years of experience in strength training and powerlifting coaching.',
+    'Strength & Conditioning',
+    TRUE
   ),
   (
-    'bbbbbbbb-0000-0000-0000-000000000002',
-    'aaaaaaaa-0000-0000-0000-000000000001',
-    'nok@fitlife.com',
-    '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    v_spec_2,
+    v_tenant_id,
+    'nok@demo.gym',
     'Nok Wannee',
-    'Certified yoga and pilates instructor. Specializes in flexibility and mindfulness.',
-    'Yoga & Pilates'
+    'Certified yoga and pilates instructor. Focuses on flexibility and mindfulness.',
+    'Yoga & Pilates',
+    TRUE
+  ),
+  (
+    v_spec_3,
+    v_tenant_id,
+    'ariya@gym.demo',
+    'Ariya Thongdee',
+    'Professional Muay Thai fighter and certified cardio conditioning coach.',
+    'Muay Thai & Cardio',
+    TRUE
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ── Event Types ──────────────────────────────────────────────
+INSERT INTO event_types (tenant_id, specialist_id, name, description, duration_minutes, color, is_active)
+VALUES
+  (
+    v_tenant_id, NULL,
+    'Personal Training Session',
+    'One-on-one training tailored to your goals — strength, weight loss, or endurance.',
+    60, '#3B82F6', TRUE
+  ),
+  (
+    v_tenant_id, NULL,
+    'Group Class',
+    'High-energy group workout. Max 10 participants. Suitable for all fitness levels.',
+    45, '#10B981', TRUE
+  ),
+  (
+    v_tenant_id, NULL,
+    'Fitness Assessment',
+    'Full body assessment including body composition, strength, and mobility tests.',
+    30, '#F59E0B', TRUE
   );
 
--- Availability slots (next 7 days, Asia/Bangkok = UTC+7)
--- Inserting as UTC (subtract 7h from Bangkok time)
-INSERT INTO availability_slots (tenant_id, trainer_id, starts_at, ends_at)
-SELECT
-  'aaaaaaaa-0000-0000-0000-000000000001',
-  'bbbbbbbb-0000-0000-0000-000000000001',
-  (NOW()::date + INTERVAL '1 day' + (h || ' hours')::interval) AT TIME ZONE 'Asia/Bangkok',
-  (NOW()::date + INTERVAL '1 day' + (h || ' hours')::interval + INTERVAL '1 hour') AT TIME ZONE 'Asia/Bangkok'
-FROM unnest(ARRAY[2, 3, 9, 10, 14, 15]) AS h;
+-- ── Availability Schedules ───────────────────────────────────
+-- Somchai: Mon–Fri 06:00–12:00 and 16:00–20:00
+INSERT INTO availability_schedules (specialist_id, tenant_id, day_of_week, start_time, end_time)
+VALUES
+  (v_spec_1, v_tenant_id, 1, '06:00', '12:00'),
+  (v_spec_1, v_tenant_id, 2, '06:00', '12:00'),
+  (v_spec_1, v_tenant_id, 3, '06:00', '12:00'),
+  (v_spec_1, v_tenant_id, 4, '06:00', '12:00'),
+  (v_spec_1, v_tenant_id, 5, '06:00', '12:00'),
+  (v_spec_1, v_tenant_id, 1, '16:00', '20:00'),
+  (v_spec_1, v_tenant_id, 2, '16:00', '20:00'),
+  (v_spec_1, v_tenant_id, 3, '16:00', '20:00'),
+  (v_spec_1, v_tenant_id, 4, '16:00', '20:00'),
+  (v_spec_1, v_tenant_id, 5, '16:00', '20:00');
 
-INSERT INTO availability_slots (tenant_id, trainer_id, starts_at, ends_at)
-SELECT
-  'aaaaaaaa-0000-0000-0000-000000000001',
-  'bbbbbbbb-0000-0000-0000-000000000002',
-  (NOW()::date + INTERVAL '1 day' + (h || ' hours')::interval) AT TIME ZONE 'Asia/Bangkok',
-  (NOW()::date + INTERVAL '1 day' + (h || ' hours')::interval + INTERVAL '1 hour') AT TIME ZONE 'Asia/Bangkok'
-FROM unnest(ARRAY[1, 5, 8, 11, 13, 16]) AS h;
+-- Nok: Mon/Wed/Fri 08:00–14:00, Sat/Sun 08:00–12:00
+INSERT INTO availability_schedules (specialist_id, tenant_id, day_of_week, start_time, end_time)
+VALUES
+  (v_spec_2, v_tenant_id, 1, '08:00', '14:00'),
+  (v_spec_2, v_tenant_id, 3, '08:00', '14:00'),
+  (v_spec_2, v_tenant_id, 5, '08:00', '14:00'),
+  (v_spec_2, v_tenant_id, 6, '08:00', '12:00'),
+  (v_spec_2, v_tenant_id, 0, '08:00', '12:00');
+
+-- Ariya: Tue/Thu/Sat 10:00–13:00 and 17:00–21:00
+INSERT INTO availability_schedules (specialist_id, tenant_id, day_of_week, start_time, end_time)
+VALUES
+  (v_spec_3, v_tenant_id, 2, '10:00', '13:00'),
+  (v_spec_3, v_tenant_id, 4, '10:00', '13:00'),
+  (v_spec_3, v_tenant_id, 6, '10:00', '13:00'),
+  (v_spec_3, v_tenant_id, 2, '17:00', '21:00'),
+  (v_spec_3, v_tenant_id, 4, '17:00', '21:00'),
+  (v_spec_3, v_tenant_id, 6, '17:00', '21:00');
+
+END $$;

@@ -4,34 +4,34 @@
 -- ============================================================
 
 -- Enable RLS on all tables
-ALTER TABLE tenants               ENABLE ROW LEVEL SECURITY;
-ALTER TABLE trainers              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE trainees              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE event_types           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tenants                ENABLE ROW LEVEL SECURITY;
+ALTER TABLE specialists            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clients                ENABLE ROW LEVEL SECURITY;
+ALTER TABLE event_types            ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE availability_overrides ENABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings              ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings               ENABLE ROW LEVEL SECURITY;
 
 -- ── Helper: get current user's tenant_id ────────────────────
--- Checks both trainers and trainees tables
+-- Checks both specialists and clients tables
 CREATE OR REPLACE FUNCTION get_my_tenant_id()
 RETURNS UUID LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT tenant_id FROM trainers WHERE id = auth.uid()
+  SELECT tenant_id FROM specialists WHERE id = auth.uid()
   UNION ALL
-  SELECT tenant_id FROM trainees WHERE id = auth.uid()
+  SELECT tenant_id FROM clients WHERE id = auth.uid()
   LIMIT 1;
 $$;
 
--- ── Helper: is current user a trainer? ──────────────────────
-CREATE OR REPLACE FUNCTION is_trainer()
+-- ── Helper: is current user a specialist? ───────────────────
+CREATE OR REPLACE FUNCTION is_specialist()
 RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT EXISTS (SELECT 1 FROM trainers WHERE id = auth.uid() AND is_active = TRUE);
+  SELECT EXISTS (SELECT 1 FROM specialists WHERE id = auth.uid() AND is_active = TRUE);
 $$;
 
--- ── Helper: is current user a trainee? ──────────────────────
-CREATE OR REPLACE FUNCTION is_trainee()
+-- ── Helper: is current user a client? ───────────────────────
+CREATE OR REPLACE FUNCTION is_client()
 RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER AS $$
-  SELECT EXISTS (SELECT 1 FROM trainees WHERE id = auth.uid());
+  SELECT EXISTS (SELECT 1 FROM clients WHERE id = auth.uid());
 $$;
 
 -- ── Tenants ──────────────────────────────────────────────────
@@ -40,32 +40,32 @@ CREATE POLICY "users read own tenant"
   ON tenants FOR SELECT
   USING (id = get_my_tenant_id());
 
--- ── Trainers ─────────────────────────────────────────────────
--- Anyone in the same tenant can see active trainers (trainees need this to list trainers)
-CREATE POLICY "tenant members read trainers"
-  ON trainers FOR SELECT
+-- ── Specialists ──────────────────────────────────────────────
+-- Anyone in the same tenant can see active specialists (clients need this to list specialists)
+CREATE POLICY "tenant members read specialists"
+  ON specialists FOR SELECT
   USING (tenant_id = get_my_tenant_id() AND is_active = TRUE);
 
--- Trainers can update only their own profile
-CREATE POLICY "trainer updates own profile"
-  ON trainers FOR UPDATE
+-- Specialists can update only their own profile
+CREATE POLICY "specialist updates own profile"
+  ON specialists FOR UPDATE
   USING (id = auth.uid())
   WITH CHECK (id = auth.uid());
 
--- ── Trainees ─────────────────────────────────────────────────
--- Trainees can only read their own row
-CREATE POLICY "trainee reads own row"
-  ON trainees FOR SELECT
+-- ── Clients ──────────────────────────────────────────────────
+-- Clients can only read their own row
+CREATE POLICY "client reads own row"
+  ON clients FOR SELECT
   USING (id = auth.uid());
 
--- Trainers can read trainees in their tenant (to see who booked)
-CREATE POLICY "trainer reads tenant trainees"
-  ON trainees FOR SELECT
-  USING (is_trainer() AND tenant_id = get_my_tenant_id());
+-- Specialists can read clients in their tenant (to see who booked)
+CREATE POLICY "specialist reads tenant clients"
+  ON clients FOR SELECT
+  USING (is_specialist() AND tenant_id = get_my_tenant_id());
 
--- Trainees can update their own display info
-CREATE POLICY "trainee updates own row"
-  ON trainees FOR UPDATE
+-- Clients can update their own display info
+CREATE POLICY "client updates own row"
+  ON clients FOR UPDATE
   USING (id = auth.uid())
   WITH CHECK (id = auth.uid());
 
@@ -75,71 +75,71 @@ CREATE POLICY "tenant members read event types"
   ON event_types FOR SELECT
   USING (tenant_id = get_my_tenant_id() AND is_active = TRUE);
 
--- Trainers can create event types for their tenant (tenant-wide or own)
-CREATE POLICY "trainer creates event types"
+-- Specialists can create event types for their tenant (tenant-wide or own)
+CREATE POLICY "specialist creates event types"
   ON event_types FOR INSERT
   WITH CHECK (
-    is_trainer()
+    is_specialist()
     AND tenant_id = get_my_tenant_id()
-    AND (trainer_id IS NULL OR trainer_id = auth.uid())
+    AND (specialist_id IS NULL OR specialist_id = auth.uid())
   );
 
--- Trainers can update their own event types only
-CREATE POLICY "trainer updates own event types"
+-- Specialists can update their own event types only
+CREATE POLICY "specialist updates own event types"
   ON event_types FOR UPDATE
-  USING (is_trainer() AND trainer_id = auth.uid())
-  WITH CHECK (trainer_id = auth.uid());
+  USING (is_specialist() AND specialist_id = auth.uid())
+  WITH CHECK (specialist_id = auth.uid());
 
 -- ── Availability Schedules ───────────────────────────────────
--- Trainees can read schedules to know when trainers are available
+-- Clients can read schedules to know when specialists are available
 CREATE POLICY "tenant members read schedules"
   ON availability_schedules FOR SELECT
   USING (tenant_id = get_my_tenant_id());
 
--- Trainers manage only their own schedules
-CREATE POLICY "trainer manages own schedules"
+-- Specialists manage only their own schedules
+CREATE POLICY "specialist manages own schedules"
   ON availability_schedules FOR ALL
-  USING (trainer_id = auth.uid())
-  WITH CHECK (trainer_id = auth.uid());
+  USING (specialist_id = auth.uid())
+  WITH CHECK (specialist_id = auth.uid());
 
 -- ── Availability Overrides ───────────────────────────────────
 CREATE POLICY "tenant members read overrides"
   ON availability_overrides FOR SELECT
   USING (tenant_id = get_my_tenant_id());
 
-CREATE POLICY "trainer manages own overrides"
+CREATE POLICY "specialist manages own overrides"
   ON availability_overrides FOR ALL
-  USING (trainer_id = auth.uid())
-  WITH CHECK (trainer_id = auth.uid());
+  USING (specialist_id = auth.uid())
+  WITH CHECK (specialist_id = auth.uid());
 
 -- ── Bookings ─────────────────────────────────────────────────
--- Trainees see only their own bookings
-CREATE POLICY "trainee reads own bookings"
+-- Clients see only their own bookings
+CREATE POLICY "client reads own bookings"
   ON bookings FOR SELECT
-  USING (trainee_id = auth.uid());
+  USING (client_id = auth.uid());
 
--- Trainers see bookings assigned to them
-CREATE POLICY "trainer reads own bookings"
+-- Specialists see bookings assigned to them
+CREATE POLICY "specialist reads own bookings"
   ON bookings FOR SELECT
-  USING (trainer_id = auth.uid());
+  USING (specialist_id = auth.uid());
 
--- Trainees can create bookings within their tenant
-CREATE POLICY "trainee creates bookings"
+-- Clients can create bookings within their tenant
+CREATE POLICY "client creates bookings"
   ON bookings FOR INSERT
   WITH CHECK (
-    is_trainee()
-    AND trainee_id = auth.uid()
+    is_client()
+    AND client_id = auth.uid()
     AND tenant_id = get_my_tenant_id()
   );
 
--- Trainees can cancel their own confirmed bookings
-CREATE POLICY "trainee cancels own bookings"
+-- Clients can cancel their own confirmed bookings
+CREATE POLICY "client cancels own bookings"
   ON bookings FOR UPDATE
-  USING (trainee_id = auth.uid() AND status = 'confirmed')
-  WITH CHECK (status = 'cancelled' AND cancelled_by = 'trainee');
+  USING (client_id = auth.uid() AND status = 'confirmed')
+  WITH CHECK (status = 'cancelled' AND cancelled_by = 'client');
 
--- Trainers can cancel or reschedule their own bookings
-CREATE POLICY "trainer updates own bookings"
+-- Specialists can cancel or reschedule their own bookings
+CREATE POLICY "specialist updates own bookings"
   ON bookings FOR UPDATE
-  USING (trainer_id = auth.uid())
-  WITH CHECK (trainer_id = auth.uid());
+  USING (specialist_id = auth.uid())
+  WITH CHECK (specialist_id = auth.uid());

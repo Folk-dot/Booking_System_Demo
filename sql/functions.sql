@@ -4,7 +4,7 @@
 -- ============================================================
 
 -- ── get_available_slots ──────────────────────────────────────
--- Returns bookable time slots for a trainer+event_type on a given date.
+-- Returns bookable time slots for a specialist+event_type on a given date.
 -- Algorithm:
 --   1. Get event type duration + buffers
 --   2. Check for a date override (day off or custom hours)
@@ -14,7 +14,7 @@
 --
 -- Called from client via: supabase.rpc('get_available_slots', {...})
 CREATE OR REPLACE FUNCTION get_available_slots(
-  p_trainer_id    UUID,
+  p_specialist_id UUID,
   p_event_type_id UUID,
   p_date          DATE
 )
@@ -42,8 +42,8 @@ BEGIN
          t.timezone
   INTO v_duration, v_buf_before, v_buf_after, v_timezone
   FROM event_types et
-  JOIN trainers tr ON tr.id = p_trainer_id
-  JOIN tenants  t  ON t.id  = tr.tenant_id
+  JOIN specialists sp ON sp.id = p_specialist_id
+  JOIN tenants     t  ON t.id  = sp.tenant_id
   WHERE et.id = p_event_type_id AND et.is_active = TRUE;
 
   IF NOT FOUND THEN RETURN; END IF;
@@ -52,7 +52,7 @@ BEGIN
   SELECT is_day_off, start_time, end_time
   INTO v_override
   FROM availability_overrides
-  WHERE trainer_id = p_trainer_id AND date = p_date;
+  WHERE specialist_id = p_specialist_id AND date = p_date;
 
   IF FOUND THEN
     IF v_override.is_day_off THEN
@@ -64,17 +64,17 @@ BEGIN
     -- Use weekly recurring schedule
     v_day_of_week := EXTRACT(DOW FROM p_date)::INT; -- 0=Sun, 6=Sat
 
-    -- Pick the first active window for this day (if trainer has split day, pick first)
+    -- Pick the first active window for this day
     SELECT start_time, end_time
     INTO v_schedule
     FROM availability_schedules
-    WHERE trainer_id = p_trainer_id
-      AND day_of_week = v_day_of_week
-      AND is_active = TRUE
+    WHERE specialist_id = p_specialist_id
+      AND day_of_week   = v_day_of_week
+      AND is_active     = TRUE
     ORDER BY start_time
     LIMIT 1;
 
-    IF NOT FOUND THEN RETURN; END IF; -- trainer not working this day
+    IF NOT FOUND THEN RETURN; END IF; -- specialist not working this day
 
     v_window_start := v_schedule.start_time;
     v_window_end   := v_schedule.end_time;
@@ -104,10 +104,10 @@ BEGIN
     -- A slot is free if no confirmed booking overlaps when buffers are considered
     IF NOT EXISTS (
       SELECT 1 FROM bookings
-      WHERE trainer_id = p_trainer_id
-        AND status     = 'confirmed'
-        AND starts_at  < v_slot_end  + (v_buf_after  || ' minutes')::INTERVAL
-        AND ends_at    > v_current   - (v_buf_before || ' minutes')::INTERVAL
+      WHERE specialist_id = p_specialist_id
+        AND status        = 'confirmed'
+        AND starts_at     < v_slot_end  + (v_buf_after  || ' minutes')::INTERVAL
+        AND ends_at       > v_current   - (v_buf_before || ' minutes')::INTERVAL
     ) THEN
       slot_start := v_current;
       slot_end   := v_slot_end;
@@ -120,17 +120,16 @@ BEGIN
 END;
 $$;
 
--- Grant execute to authenticated users (RLS on bookings still protects data)
 GRANT EXECUTE ON FUNCTION get_available_slots TO authenticated;
 
 
--- ── get_trainer_schedule ─────────────────────────────────────
--- Returns a trainer's weekly schedule + any overrides for a date range.
+-- ── get_specialist_schedule ──────────────────────────────────
+-- Returns a specialist's weekly schedule + any overrides for a date range.
 -- Used by the LIFF calendar to mark which days have availability.
-CREATE OR REPLACE FUNCTION get_trainer_schedule(
-  p_trainer_id UUID,
-  p_from        DATE,
-  p_to          DATE
+CREATE OR REPLACE FUNCTION get_specialist_schedule(
+  p_specialist_id UUID,
+  p_from          DATE,
+  p_to            DATE
 )
 RETURNS TABLE (
   date         DATE,
@@ -153,7 +152,7 @@ BEGIN
     SELECT is_day_off, start_time
     INTO v_override
     FROM availability_overrides
-    WHERE trainer_id = p_trainer_id AND date = v_date;
+    WHERE specialist_id = p_specialist_id AND date = v_date;
 
     IF FOUND THEN
       date       := v_date;
@@ -164,9 +163,9 @@ BEGIN
       -- Check weekly schedule
       SELECT EXISTS (
         SELECT 1 FROM availability_schedules
-        WHERE trainer_id = p_trainer_id
-          AND day_of_week = v_dow
-          AND is_active = TRUE
+        WHERE specialist_id = p_specialist_id
+          AND day_of_week   = v_dow
+          AND is_active     = TRUE
       ) INTO v_has_sched;
 
       date       := v_date;
@@ -180,4 +179,4 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION get_trainer_schedule TO authenticated;
+GRANT EXECUTE ON FUNCTION get_specialist_schedule TO authenticated;

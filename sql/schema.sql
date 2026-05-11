@@ -1,7 +1,7 @@
 -- ============================================================
--- Booking System — PostgreSQL Schema (Cal.com style)
+-- Booking System — PostgreSQL Schema
 -- All timestamps stored as UTC (TIMESTAMPTZ)
--- Trainer/trainee rows are linked to Supabase auth.users
+-- Specialist/client rows are linked to Supabase auth.users
 -- ============================================================
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -17,9 +17,9 @@ CREATE TABLE tenants (
   created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
--- ── Trainers ─────────────────────────────────────────────────
+-- ── Specialists ──────────────────────────────────────────────
 -- id is the Supabase auth.users UUID — no separate password storage
-CREATE TABLE trainers (
+CREATE TABLE specialists (
   id         UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   tenant_id  UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   email      TEXT NOT NULL,
@@ -32,10 +32,10 @@ CREATE TABLE trainers (
   UNIQUE (tenant_id, email)
 );
 
--- ── Trainees ─────────────────────────────────────────────────
+-- ── Clients ──────────────────────────────────────────────────
 -- id is the Supabase auth.users UUID
 -- LINE uid stored for push notifications — not used for auth
-CREATE TABLE trainees (
+CREATE TABLE clients (
   id           UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   tenant_id    UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   line_uid     TEXT,
@@ -46,12 +46,12 @@ CREATE TABLE trainees (
 );
 
 -- ── Event Types ──────────────────────────────────────────────
--- trainer_id NULL  → tenant-wide (applies to all trainers)
--- trainer_id SET   → trainer-specific override/addition
+-- specialist_id NULL  → tenant-wide (applies to all specialists)
+-- specialist_id SET   → specialist-specific override/addition
 CREATE TABLE event_types (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id             UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  trainer_id            UUID REFERENCES trainers(id) ON DELETE CASCADE,
+  specialist_id         UUID REFERENCES specialists(id) ON DELETE CASCADE,
   name                  TEXT NOT NULL,
   description           TEXT,
   duration_minutes      INT NOT NULL DEFAULT 60 CHECK (duration_minutes > 0),
@@ -64,16 +64,16 @@ CREATE TABLE event_types (
 
 -- ── Availability Schedules (weekly recurring) ────────────────
 -- day_of_week: 0 = Sunday … 6 = Saturday
--- A trainer can have multiple windows on the same day (e.g. 9-12 and 14-17)
+-- A specialist can have multiple windows on the same day (e.g. 9-12 and 14-17)
 CREATE TABLE availability_schedules (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  trainer_id   UUID NOT NULL REFERENCES trainers(id) ON DELETE CASCADE,
-  tenant_id    UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  day_of_week  SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
-  start_time   TIME NOT NULL,
-  end_time     TIME NOT NULL,
-  is_active    BOOLEAN DEFAULT TRUE,
-  created_at   TIMESTAMPTZ DEFAULT NOW(),
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  specialist_id  UUID NOT NULL REFERENCES specialists(id) ON DELETE CASCADE,
+  tenant_id      UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  day_of_week    SMALLINT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+  start_time     TIME NOT NULL,
+  end_time       TIME NOT NULL,
+  is_active      BOOLEAN DEFAULT TRUE,
+  created_at     TIMESTAMPTZ DEFAULT NOW(),
   CHECK (end_time > start_time)
 );
 
@@ -81,57 +81,56 @@ CREATE TABLE availability_schedules (
 -- is_day_off TRUE  → entire day blocked (start_time/end_time ignored)
 -- is_day_off FALSE → custom hours for this date (overrides weekly schedule)
 CREATE TABLE availability_overrides (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  trainer_id  UUID NOT NULL REFERENCES trainers(id) ON DELETE CASCADE,
-  tenant_id   UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  date        DATE NOT NULL,
-  is_day_off  BOOLEAN NOT NULL DEFAULT FALSE,
-  start_time  TIME,
-  end_time    TIME,
-  note        TEXT,
-  created_at  TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE (trainer_id, date),
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  specialist_id  UUID NOT NULL REFERENCES specialists(id) ON DELETE CASCADE,
+  tenant_id      UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  date           DATE NOT NULL,
+  is_day_off     BOOLEAN NOT NULL DEFAULT FALSE,
+  start_time     TIME,
+  end_time       TIME,
+  note           TEXT,
+  created_at     TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (specialist_id, date),
   CHECK (is_day_off = TRUE OR (start_time IS NOT NULL AND end_time IS NOT NULL AND end_time > start_time))
 );
 
 -- ── Bookings ─────────────────────────────────────────────────
--- starts_at / ends_at stored directly (no slot table)
 CREATE TABLE bookings (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  tenant_id     UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  trainer_id    UUID NOT NULL REFERENCES trainers(id),
-  trainee_id    UUID NOT NULL REFERENCES trainees(id),
-  event_type_id UUID NOT NULL REFERENCES event_types(id),
-  starts_at     TIMESTAMPTZ NOT NULL,
-  ends_at       TIMESTAMPTZ NOT NULL,
-  status        TEXT NOT NULL DEFAULT 'confirmed'
-                  CHECK (status IN ('confirmed', 'cancelled', 'rescheduled')),
-  cancelled_by  TEXT CHECK (cancelled_by IN ('trainer', 'trainee')),
-  notes         TEXT,
-  confirmed_at  TIMESTAMPTZ DEFAULT NOW(),
-  created_at    TIMESTAMPTZ DEFAULT NOW(),
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id      UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  specialist_id  UUID NOT NULL REFERENCES specialists(id),
+  client_id      UUID NOT NULL REFERENCES clients(id),
+  event_type_id  UUID NOT NULL REFERENCES event_types(id),
+  starts_at      TIMESTAMPTZ NOT NULL,
+  ends_at        TIMESTAMPTZ NOT NULL,
+  status         TEXT NOT NULL DEFAULT 'confirmed'
+                   CHECK (status IN ('confirmed', 'cancelled', 'rescheduled')),
+  cancelled_by   TEXT CHECK (cancelled_by IN ('specialist', 'client')),
+  notes          TEXT,
+  confirmed_at   TIMESTAMPTZ DEFAULT NOW(),
+  created_at     TIMESTAMPTZ DEFAULT NOW(),
   CHECK (ends_at > starts_at)
 );
 
--- Prevent double booking: no two confirmed bookings for same trainer overlap
+-- Prevent double booking: no two confirmed bookings for same specialist overlap
 CREATE UNIQUE INDEX idx_no_double_booking
-  ON bookings (trainer_id, starts_at)
+  ON bookings (specialist_id, starts_at)
   WHERE status = 'confirmed';
 
 -- Performance indexes
-CREATE INDEX idx_bookings_trainer   ON bookings (trainer_id, status, starts_at);
-CREATE INDEX idx_bookings_trainee   ON bookings (trainee_id, status);
-CREATE INDEX idx_bookings_tenant    ON bookings (tenant_id, status);
-CREATE INDEX idx_schedules_trainer  ON availability_schedules (trainer_id, day_of_week);
-CREATE INDEX idx_overrides_trainer  ON availability_overrides (trainer_id, date);
+CREATE INDEX idx_bookings_specialist  ON bookings (specialist_id, status, starts_at);
+CREATE INDEX idx_bookings_client      ON bookings (client_id, status);
+CREATE INDEX idx_bookings_tenant      ON bookings (tenant_id, status);
+CREATE INDEX idx_schedules_specialist ON availability_schedules (specialist_id, day_of_week);
+CREATE INDEX idx_overrides_specialist ON availability_overrides (specialist_id, date);
 
--- ── Auth trigger: create trainer row when Supabase user is created ──
+-- ── Auth trigger: auto-create specialist/client row on sign-up ──
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
 AS $$
 BEGIN
-  IF NEW.raw_user_meta_data ->> 'role' = 'trainer' THEN
-    INSERT INTO trainers (id, tenant_id, email, name)
+  IF NEW.raw_user_meta_data ->> 'role' = 'specialist' THEN
+    INSERT INTO specialists (id, tenant_id, email, name)
     VALUES (
       NEW.id,
       (NEW.raw_user_meta_data ->> 'tenant_id')::UUID,
@@ -140,8 +139,8 @@ BEGIN
     )
     ON CONFLICT (id) DO NOTHING;
 
-  ELSIF NEW.raw_user_meta_data ->> 'role' = 'trainee' THEN
-    INSERT INTO trainees (id, tenant_id, line_uid, display_name, picture_url)
+  ELSIF NEW.raw_user_meta_data ->> 'role' = 'client' THEN
+    INSERT INTO clients (id, tenant_id, line_uid, display_name, picture_url)
     VALUES (
       NEW.id,
       (NEW.raw_user_meta_data ->> 'tenant_id')::UUID,
